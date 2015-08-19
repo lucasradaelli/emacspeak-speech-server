@@ -9,6 +9,8 @@
 class AlsaPlayer {
  public:
   struct Options {
+    Options() noexcept {}
+
     snd_pcm_format_t sample_format = SND_PCM_FORMAT_S16;
     unsigned int sample_rate = 22050;
     unsigned int channels = 1;
@@ -20,7 +22,7 @@ class AlsaPlayer {
   snd_pcm_format_t sample_format() const { return options_.sample_format; }
   unsigned int sample_rate() const { return options_.sample_rate; }
 
-  void Reset() const;
+  void Reset();
   unsigned int NumSamples() const { return period_size_; }
   char* Buffer() const { return buffer_.get(); }
   std::size_t Play(std::size_t count);

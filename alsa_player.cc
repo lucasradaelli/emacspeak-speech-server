@@ -17,9 +17,6 @@ AlsaPlayer::AlsaPlayer(const Options &options) : options_(options) {
     throw AlsaError(snd_strerror(error));
   }
 
-  std::size_t chunk_bytes, bits_per_sample, bits_per_frame = 0;
-  snd_pcm_uframes_t chunk_size, buffer_size = 0;
-
   snd_pcm_hw_params_alloca(&params_);
 
   error = snd_pcm_hw_params_any(pcm_, params_);
@@ -38,7 +35,7 @@ AlsaPlayer::AlsaPlayer(const Options &options) : options_(options) {
   }
 
   unsigned int sample_rate = options_.sample_rate;
-  error = snd_pcm_hw_params_set_rate_near(pcm_, params_, sample_rate, 0);
+  error = snd_pcm_hw_params_set_rate_near(pcm_, params_, &sample_rate, 0);
   //TODO:handle error
 
   error = snd_pcm_hw_params_set_access(pcm_, params_,
