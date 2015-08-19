@@ -232,7 +232,7 @@ TTS::TTS(AlsaPlayer* alsa_player, const Options& options) : alsa_player_(alsa_pl
    if (!rc) {
      throw ECIError("Error  resetting TTS engine.\n");
    }
-   rc = eciSetOutputBuffer(eci_handle_, alsa_player_->NumSamples(), alsa_player_->Buffer());
+   rc = eciSetOutputBuffer(eci_handle_, alsa_player_->period_size(), alsa_player_->buffer());
    if (!rc) {
      throw ECIError("Error setting output buffer.\n");
    }
@@ -269,7 +269,7 @@ bool TTs::Synchronize() {
 
 
 
-                                                     string LangSwitcher::GetDefaultLanguageCode() {
+string LangSwitcher::GetDefaultLanguageCode() {
   const char* a_default_lang = getenv("LANGUAGE");
   if (a_default_lang == NULL)
     {

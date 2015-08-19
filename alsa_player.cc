@@ -1,104 +1,99 @@
 #include "alsa_player.h"
 
 #include <cstdio>
+#include <iostream>
+#include <sstream>
 
 #include <alsa/asoundlib.h>
 #include <sys/time.h>
 
-AlsaPlayer::AlsaPlayer(const Options &options) : options_(options) {
-  int error = snd_pcm_open(&pcm_, "default", SND_PCM_STREAM_PLAYBACK, 0);
-
+AlsaPlayer::AlsaPlayer(const Options& options) : options_(options) {
+  int error =
+      snd_pcm_open(&pcm_, options.device.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
   if (error < 0) {
-    throw AlsaError(snd_strerror(error));
+    throw AlsaError("Failed to open ALSA sound device", error);
   }
 
-  error = snd_output_stdio_attach(&output_, stderr, 0);
-  if (error < 0) {
-    throw AlsaError(snd_strerror(error));
-  }
+  SetupPCM();
 
-  snd_pcm_hw_params_alloca(&params_);
-
-  error = snd_pcm_hw_params_any(pcm_, params_);
-  if (error < 0) {
-    throw AlsaError("PCM: Broken configuration: no configurations available.");
-  }
-
-  error = snd_pcm_hw_params_set_format(pcm_, params_, options_.sample_format);
-  if (error < 0) {
-    throw AlsaError("Sample format non available");
-  }
-
-  error = snd_pcm_hw_params_set_channels(pcm_, params_, options_.channels);
-  if (error < 0) {
-    throw AlsaError("Channels count non available");
-  }
-
-  unsigned int sample_rate = options_.sample_rate;
-  error = snd_pcm_hw_params_set_rate_near(pcm_, params_, &sample_rate, 0);
-  //TODO:handle error
-
-  error = snd_pcm_hw_params_set_access(pcm_, params_,
-                                       SND_PCM_ACCESS_RW_INTERLEAVED);
-  if (error < 0) {
-    throw AlsaError("Access type not available");
-  }
-
-  error = snd_pcm_hw_params(pcm_, params_);
-  if (error < 0) {
-    throw AlsaError("Unable to install hw params:");
-  }
-
-  snd_pcm_hw_params_get_period_size(params_, &period_size_, 0);
-  snd_pcm_hw_params_get_buffer_size(params_, &buffer_size_);
-
-  buffer_.reset(new char[buffer_size_]);
+  // Allocate the PCM buffer.
+  const std::size_t sample_size =
+      snd_pcm_format_physical_width(options_.sample_format) / 8;
+  frame_size_ = options_.channels * sample_size;
+  buffer_.reset(new char[period_size_ * frame_size_]);
 }
 
-AlsaPlayer::~AlsaPlayer() {
-  snd_pcm_close(pcm_);
+AlsaPlayer::~AlsaPlayer() { snd_pcm_close(pcm_); }
+
+void AlsaPlayer::SetupPCM() {
+  auto check = [](int error) {
+    if (error < 0) {
+      throw AlsaError("Requested PCM configuration was rejected by ALSA",
+                      error);
+    }
+  };
+
+  snd_pcm_hw_params_t* params = nullptr;
+  snd_pcm_hw_params_alloca(&params);
+
+  // Set ALSA hardware parameters for the requested PCM stream.
+  check(snd_pcm_hw_params_any(pcm_, params));
+  check(snd_pcm_hw_params_set_access(pcm_, params,
+                                     SND_PCM_ACCESS_RW_INTERLEAVED));
+  check(snd_pcm_hw_params_set_format(pcm_, params, options_.sample_format));
+  check(snd_pcm_hw_params_set_rate(pcm_, params, options_.sample_rate, 0));
+  check(snd_pcm_hw_params_set_channels(pcm_, params, options_.channels));
+
+  // Write ALSA hardware parameters to the device.
+  check(snd_pcm_hw_params(pcm_, params));
+
+  // Retrieve period and buffer sizes from ALSA.
+  check(snd_pcm_hw_params_get_period_size(params, &period_size_, 0));
+  check(snd_pcm_hw_params_get_buffer_size(params, &buffer_size_));
 }
 
-void AlsaPlayer::Reset() {
+void AlsaPlayer::Interrupt() {
   snd_pcm_drop(pcm_);
   snd_pcm_prepare(pcm_);
 }
 
-std::size_t AlsaPlayer::Play(std::size_t count) {
-  ssize_t r;
-  ssize_t result = 0;
-
-  short* data = reinterpret_cast<short*>(buffer_.get());
+std::size_t AlsaPlayer::Play(int count) {
+  std::size_t result = 0;
+  char* data = buffer_.get();
 
   while (count > 0) {
-    r = snd_pcm_writei(pcm_, data, count);
-    if (r == -EAGAIN || (r >= 0 && (size_t)r < count)) {
-      snd_pcm_wait(pcm_, 1000);
-    } else if (r == -EPIPE) {
-      xrun();
-    } else if (r == -ESTRPIPE) {
-      suspend();
-    } else if (r < 0) {
-      fprintf(stderr, "write error: %s", snd_strerror(r));
-      exit(EXIT_FAILURE);
-    }
-    if (r > 0) {
-      result += r;
+    snd_pcm_sframes_t r = snd_pcm_writei(pcm_, data, count);
+    if (r < 0) {
+      if (r == -EAGAIN) {
+        // TODO: Do not block on ALSA.
+        snd_pcm_wait(pcm_, 1000);
+      } else if (r == -EPIPE) {
+        RecoverFromUnderrun();
+      } else if (r == -ESTRPIPE) {
+        RecoverFromSuspend();
+      } else {
+        throw AlsaError("Failed to write PCM to ALSA.", r);
+      }
+    } else {
+      if (r < count) {
+        // TODO: Do not block on ALSA.
+        snd_pcm_wait(pcm_, 1000);
+      }
       count -= r;
-      data += r;
+      result += r;
+      data += r * frame_size_;
     }
   }
 
   return result;
 }
 
-void AlsaPlayer::xrun() {
-  snd_pcm_status_t *status;
-  int res;
-
+void AlsaPlayer::RecoverFromUnderrun() {
+  snd_pcm_status_t* status;
   snd_pcm_status_alloca(&status);
 
-  if ((res = snd_pcm_status(pcm_, status)) < 0) {
+  int res = snd_pcm_status(pcm_, status);
+  if (res < 0) {
     fprintf(stderr, "status error: %s", snd_strerror(res));
     exit(EXIT_FAILURE);
   }
@@ -114,8 +109,7 @@ void AlsaPlayer::xrun() {
       fprintf(stderr, "xrun: prepare error: %s", snd_strerror(res));
       exit(EXIT_FAILURE);
     }
-    return;  // ok, data should be accepted
-    // again
+    return;  // ok, data should be accepted again
   }
 
   fprintf(stderr, "read/write error, state = %s",
@@ -123,14 +117,13 @@ void AlsaPlayer::xrun() {
   exit(EXIT_FAILURE);
 }
 
-void AlsaPlayer::suspend() {
+void AlsaPlayer::RecoverFromSuspend() {
   int res;
 
   fprintf(stderr, "Suspended. Trying resume. ");
   fflush(stderr);
   while ((res = snd_pcm_resume(pcm_)) == -EAGAIN)
-    sleep(1); /* wait until suspend flag is * * released
-               */
+    sleep(1);  // wait until suspend flag is released
   if (res < 0) {
     fprintf(stderr, "Failed. Restarting stream. ");
     fflush(stderr);
@@ -143,3 +136,8 @@ void AlsaPlayer::suspend() {
   fprintf(stderr, "Done.\n");
 }
 
+std::string AlsaError::GenerateMessage(const std::string& arg, int code) {
+  std::ostringstream sstr;
+  sstr << "AlsaError: " << arg << " (" << snd_strerror(code) << ").";
+  return sstr.str();
+}
