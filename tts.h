@@ -1,6 +1,5 @@
-#ifndef _TTS_H_
-#define _TTS_H_
-
+#ifndef TTS_H_
+#define TTS_H_
 
 #include <vector>
 #include <stdexcept>
@@ -43,52 +42,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 enum ECILanguageDialect {
-    NODEFINEDCODESET                = 0x00000000,
-    eciGeneralAmericanEnglish       = 0x00010000,
-    eciBritishEnglish               = 0x00010001,
-    eciCastilianSpanish             = 0x00020000,
-    eciMexicanSpanish               = 0x00020001,
-    eciStandardFrench               = 0x00030000,
-    eciCanadianFrench               = 0x00030001,
-    eciStandardGerman               = 0x00040000,
-    eciStandardItalian              = 0x00050000,
-    eciMandarinChinese              = 0x00060000,
-    eciMandarinChineseGB            = eciMandarinChinese,
-    eciMandarinChinesePinYin        = 0x00060100,
-    eciMandarinChineseUCS           = 0x00060800,
-    eciTaiwaneseMandarin            = 0x00060001,
-    eciTaiwaneseMandarinBig5        = eciTaiwaneseMandarin,
-    eciTaiwaneseMandarinZhuYin      = 0x00060101,
-    eciTaiwaneseMandarinPinYin      = 0x00060201,
-    eciTaiwaneseMandarinUCS         = 0x00060801,
-    eciBrazilianPortuguese          = 0x00070000,
-    eciStandardJapanese             = 0x00080000,
-    eciStandardJapaneseSJIS         = eciStandardJapanese,
-    eciStandardJapaneseUCS          = 0x00080800,
-    eciStandardFinnish              = 0x00090000,
-    eciStandardKorean               = 0x000A0000,
-    eciStandardKoreanUHC            = eciStandardKorean,
-    eciStandardKoreanUCS            = 0x000A0800,
-    eciStandardCantonese            = 0x000B0000,
-    eciStandardCantoneseGB          = eciStandardCantonese,
-    eciStandardCantoneseUCS         = 0x000B0800,
-    eciHongKongCantonese            = 0x000B0001,
-    eciHongKongCantoneseBig5        = eciHongKongCantonese,
-    eciHongKongCantoneseUCS         = 0x000B0801,
-    eciStandardDutch                = 0x000C0000,
-    eciStandardNorwegian            = 0x000D0000,
-    eciStandardSwedish              = 0x000E0000,
-    eciStandardDanish               = 0x000F0000,
-    eciStandardReserved             = 0x00100000,
-    eciStandardThai                 = 0x00110000,
-    eciStandardThaiTIS              = eciStandardThai
+  NODEFINEDCODESET = 0x00000000,
+  eciGeneralAmericanEnglish = 0x00010000,
+  eciBritishEnglish = 0x00010001,
+  eciCastilianSpanish = 0x00020000,
+  eciMexicanSpanish = 0x00020001,
+  eciStandardFrench = 0x00030000,
+  eciCanadianFrench = 0x00030001,
+  eciStandardGerman = 0x00040000,
+  eciStandardItalian = 0x00050000,
+  eciMandarinChinese = 0x00060000,
+  eciMandarinChineseGB = eciMandarinChinese,
+  eciMandarinChinesePinYin = 0x00060100,
+  eciMandarinChineseUCS = 0x00060800,
+  eciTaiwaneseMandarin = 0x00060001,
+  eciTaiwaneseMandarinBig5 = eciTaiwaneseMandarin,
+  eciTaiwaneseMandarinZhuYin = 0x00060101,
+  eciTaiwaneseMandarinPinYin = 0x00060201,
+  eciTaiwaneseMandarinUCS = 0x00060801,
+  eciBrazilianPortuguese = 0x00070000,
+  eciStandardJapanese = 0x00080000,
+  eciStandardJapaneseSJIS = eciStandardJapanese,
+  eciStandardJapaneseUCS = 0x00080800,
+  eciStandardFinnish = 0x00090000,
+  eciStandardKorean = 0x000A0000,
+  eciStandardKoreanUHC = eciStandardKorean,
+  eciStandardKoreanUCS = 0x000A0800,
+  eciStandardCantonese = 0x000B0000,
+  eciStandardCantoneseGB = eciStandardCantonese,
+  eciStandardCantoneseUCS = 0x000B0800,
+  eciHongKongCantonese = 0x000B0001,
+  eciHongKongCantoneseBig5 = eciHongKongCantonese,
+  eciHongKongCantoneseUCS = 0x000B0801,
+  eciStandardDutch = 0x000C0000,
+  eciStandardNorwegian = 0x000D0000,
+  eciStandardSwedish = 0x000E0000,
+  eciStandardDanish = 0x000F0000,
+  eciStandardReserved = 0x00100000,
+  eciStandardThai = 0x00110000,
+  eciStandardThaiTIS = eciStandardThai
 };
 
-
 //
-enum {ANNOTATION_MAX_SIZE=10, LANG_INFO_MAX=22};
+enum { ANNOTATION_MAX_SIZE = 10, LANG_INFO_MAX = 22 };
 
 struct langInfo {
   enum ECILanguageDialect lang;
@@ -98,11 +95,9 @@ struct langInfo {
   const char* label;
 };
 
-enum {LANGUAGE_MAX_LABEL=30}; // max size of the label field
+enum { LANGUAGE_MAX_LABEL = 30 };  // max size of the label field
 
 // End of ECI declarations.
-
-
 
 // >
 // <decls and function prototypes
@@ -114,9 +109,7 @@ enum {LANGUAGE_MAX_LABEL=30}; // max size of the label field
  * installed.
  */
 
-typedef enum {
-  eciDataNotProcessed, eciDataProcessed
-} ECICallbackReturn;
+typedef enum { eciDataNotProcessed, eciDataProcessed } ECICallbackReturn;
 
 typedef enum {
   eciWaveformBuffer,
@@ -139,16 +132,11 @@ typedef enum {
   eciNumParams
 } ECIParam;
 
-
-
 int playTTS(int count);
-
-
-
 
 class TTS {
  public:
-  struct  Options {
+  struct Options {
     // todo: add enum for sample rates.
     int sample_rate = 1;
   };
@@ -156,7 +144,7 @@ class TTS {
   TTS(AlsaPlayer* alsa_player, const Options& options = Options());
   ~TTS();
 
-static bool InitECI();
+  static bool InitECI();
 
   int PlayTTS(const int count);
 
@@ -164,20 +152,14 @@ static bool InitECI();
 
   bool Synchronize();
 
-  void SetLastReply(const long lparam) {
-    lparam_ = lparam;
-  }
-
-
+  void SetLastReply(const long lparam) { lparam_ = lparam; }
 
  private:
-
-   void*           eci_handle_;
+  void* eci_handle_;
   AlsaPlayer* alsa_player_;
   std::unique_ptr<LangSwitcher> lang_switcher_;
   long lparam_;
 };
-
 
 class TTSError : public std::runtime_error {
  public:
@@ -186,55 +168,59 @@ class TTSError : public std::runtime_error {
 
 class LangSwitcher {
  public:
-  LangSwitcher(const   ECILanguageDialect* a_languages, const int n_languages) : a_languages_(a_languages), n_languages_(n_languages) {}
+  LangSwitcher(const ECILanguageDialect* a_languages, const int n_languages)
+      : a_languages_(a_languages), n_languages_(n_languages) {}
   ~LangSwitcher() = default;
-   ECILanguageDialect InitLanguage();
+  ECILanguageDialect InitLanguage();
+
  private:
   std::string GetDefaultLanguageCode();
-  bool GetValidLanguages( std::vector<int>* available_languages_index);
+  bool GetValidLanguages(std::vector<int>* available_languages_index);
 
-
-   ECILanguageDialect* a_languages_;
+  ECILanguageDialect* a_languages_;
   int n_languages_;
 
-   std::vector<langInfo> the_languages_{
-  {NODEFINEDCODESET,NULL,NULL,NULL,NULL},
-  {eciGeneralAmericanEnglish,"en_US","iso8859-1","1.0","American"},
-  {eciBritishEnglish,"en_GB","iso8859-1","1.1","British"},
-  {eciCastilianSpanish,"es_ES","iso8859-1","2.0","Español"},
-  {eciMexicanSpanish,"es_MX","iso8859-1","2.1","Mexicano"},
-  {eciStandardFrench,"fr_FR","iso8859-1","3.0","Français"},
-  {eciCanadianFrench,"fr_CA","iso8859-1","3.1","Français Canadien"},
-  {eciStandardGerman,"de_DE","iso8859-1","4.0","Deutsch"},
-  {eciStandardItalian,"it_IT","iso8859-1","5.0","Italiano"},
-  {eciMandarinChineseGB,"zh_CN","gb2312","6.0","Chinese Simplified"},
-  {eciMandarinChinesePinYin,"zh_CN","gb2312","6.0.1","Chinese Simplified"},
-  {eciMandarinChineseUCS,"zh_CN","UCS2","6.0.8","Chinese Simplified"},
-  {eciTaiwaneseMandarinBig5,"zh_HK","big5","6.1","Chinese Traditional"},
-  {eciTaiwaneseMandarinZhuYin,"zh_HK","big5","6.1.1","Chinese Traditional"},
-  {eciTaiwaneseMandarinPinYin,"zh_HK","big5","6.1.2","Chinese Traditional"},
-  {eciTaiwaneseMandarinUCS,"zh_HK","UCS2","6.1.8","Chinese Traditional"},
-  {eciBrazilianPortuguese,"pt_BR","iso8859-1","7.0","Brazilian Portuguese"},
-  {eciStandardJapaneseSJIS,"ja_JP","shiftjis","8.0","Japanese"},
-  {eciStandardJapaneseUCS,"ja_JP","UCS2","8.0.8","Japanese"},
-  {eciStandardFinnish,"fi_FI","iso8859-1","9.0","Finnish"},
-  {eciStandardKoreanUHC,NULL,NULL,NULL},
-  {eciStandardKoreanUCS,NULL,NULL,NULL,NULL},
-  {eciStandardCantoneseGB,NULL,NULL,NULL,NULL},
-  {eciStandardCantoneseUCS,NULL,NULL,NULL,NULL},
-  {eciHongKongCantoneseBig5,NULL,NULL,NULL,NULL},
-  {eciHongKongCantoneseUCS,NULL,NULL,NULL,NULL},
-  {eciStandardDutch,NULL,NULL,NULL,NULL},
-  {eciStandardNorwegian,NULL,NULL,NULL,NULL},
-  {eciStandardSwedish,NULL,NULL,NULL,NULL},
-  {eciStandardDanish,NULL,NULL,NULL,NULL},
-  {eciStandardReserved,NULL,NULL,NULL,NULL},
-  {eciStandardThai,NULL,NULL,NULL,NULL},
-  {eciStandardThaiTIS,NULL,NULL,NULL,NULL}
+  std::vector<langInfo> the_languages_{
+      {NODEFINEDCODESET, NULL, NULL, NULL, NULL},
+      {eciGeneralAmericanEnglish, "en_US", "iso8859-1", "1.0", "American"},
+      {eciBritishEnglish, "en_GB", "iso8859-1", "1.1", "British"},
+      {eciCastilianSpanish, "es_ES", "iso8859-1", "2.0", "Español"},
+      {eciMexicanSpanish, "es_MX", "iso8859-1", "2.1", "Mexicano"},
+      {eciStandardFrench, "fr_FR", "iso8859-1", "3.0", "Français"},
+      {eciCanadianFrench, "fr_CA", "iso8859-1", "3.1", "Français Canadien"},
+      {eciStandardGerman, "de_DE", "iso8859-1", "4.0", "Deutsch"},
+      {eciStandardItalian, "it_IT", "iso8859-1", "5.0", "Italiano"},
+      {eciMandarinChineseGB, "zh_CN", "gb2312", "6.0", "Chinese Simplified"},
+      {eciMandarinChinesePinYin, "zh_CN", "gb2312", "6.0.1",
+       "Chinese Simplified"},
+      {eciMandarinChineseUCS, "zh_CN", "UCS2", "6.0.8", "Chinese Simplified"},
+      {eciTaiwaneseMandarinBig5, "zh_HK", "big5", "6.1", "Chinese Traditional"},
+      {eciTaiwaneseMandarinZhuYin, "zh_HK", "big5", "6.1.1",
+       "Chinese Traditional"},
+      {eciTaiwaneseMandarinPinYin, "zh_HK", "big5", "6.1.2",
+       "Chinese Traditional"},
+      {eciTaiwaneseMandarinUCS, "zh_HK", "UCS2", "6.1.8",
+       "Chinese Traditional"},
+      {eciBrazilianPortuguese, "pt_BR", "iso8859-1", "7.0",
+       "Brazilian Portuguese"},
+      {eciStandardJapaneseSJIS, "ja_JP", "shiftjis", "8.0", "Japanese"},
+      {eciStandardJapaneseUCS, "ja_JP", "UCS2", "8.0.8", "Japanese"},
+      {eciStandardFinnish, "fi_FI", "iso8859-1", "9.0", "Finnish"},
+      {eciStandardKoreanUHC, NULL, NULL, NULL},
+      {eciStandardKoreanUCS, NULL, NULL, NULL, NULL},
+      {eciStandardCantoneseGB, NULL, NULL, NULL, NULL},
+      {eciStandardCantoneseUCS, NULL, NULL, NULL, NULL},
+      {eciHongKongCantoneseBig5, NULL, NULL, NULL, NULL},
+      {eciHongKongCantoneseUCS, NULL, NULL, NULL, NULL},
+      {eciStandardDutch, NULL, NULL, NULL, NULL},
+      {eciStandardNorwegian, NULL, NULL, NULL, NULL},
+      {eciStandardSwedish, NULL, NULL, NULL, NULL},
+      {eciStandardDanish, NULL, NULL, NULL, NULL},
+      {eciStandardReserved, NULL, NULL, NULL, NULL},
+      {eciStandardThai, NULL, NULL, NULL, NULL},
+      {eciStandardThaiTIS, NULL, NULL, NULL, NULL}};
+
+  int current_language;
 };
 
-int   current_language;
-
-};
-
-#endif
+#endif  // TTS_H_
