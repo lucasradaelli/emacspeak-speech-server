@@ -1,9 +1,12 @@
 #ifndef TTS_H_
 #define TTS_H_
 
-#include <vector>
+#include "alsa_player.h"
+
+#include <memory>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #define PACKAGENAME "tts"
 #define PACKAGEVERSION "1.0"
@@ -132,11 +135,13 @@ typedef enum {
   eciNumParams
 } ECIParam;
 
-int playTTS(int count);
+class LangSwitcher;
 
 class TTS {
  public:
   struct Options {
+    Options() noexcept {}
+
     // todo: add enum for sample rates.
     int sample_rate = 1;
   };
@@ -177,7 +182,7 @@ class LangSwitcher {
   std::string GetDefaultLanguageCode();
   bool GetValidLanguages(std::vector<int>* available_languages_index);
 
-  ECILanguageDialect* a_languages_;
+  const ECILanguageDialect* a_languages_;
   int n_languages_;
 
   std::vector<langInfo> the_languages_{

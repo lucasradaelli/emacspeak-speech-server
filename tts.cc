@@ -32,7 +32,8 @@ int (*eciGetVoiceParam)(void *, int, int);
 int (*eciSetVoiceParam)(void *, int, int, int);
 int (*eciSetOutputBuffer)(void *, int, short *);
 int (*eciSetOutputDevice)(void *, int);
-void (*eciRegisterCallback)(void *, int (*)(void *, int, long, void *), void *);
+void (*eciRegisterCallback)(void *,
+    ECICallbackReturn (*)(void *, ECIMessage, long, void *), void *);
 
 }  // namespace
 
@@ -73,8 +74,8 @@ bool TTS::InitECI() {
   eciSetVoiceParam = (int (*)(void *, int, int, int))(unsigned long)dlsym(
       eciLib, "eciSetVoiceParam");
   eciRegisterCallback =
-      (void (*)(void *, int (*)(void *, int, long, void *), void *))(
-          unsigned long)dlsym(eciLib, "eciRegisterCallback");
+      (void (*)(void *, ECICallbackReturn (*)(void *, ECIMessage, long, void *),
+                void *))(unsigned long)dlsym(eciLib, "eciRegisterCallback");
   eciSetOutputBuffer = (int (*)(void *, int, short *))(unsigned long)dlsym(
       eciLib, "eciSetOutputBuffer");
   eciSetOutputDevice =
@@ -168,14 +169,13 @@ bool TTS::InitECI() {
 TTS::TTS(AlsaPlayer *alsa_player, const Options &options)
     : alsa_player_(alsa_player) {
   int rc;
-  size_t chunk_bytes = 0;
   ECILanguageDialect a_languages[LANG_INFO_MAX];
   int n_languages = LANG_INFO_MAX;
   eciGetAvailableLanguages(a_languages, &n_languages);
 
   lang_switcher_.reset(new LangSwitcher(a_languages, n_languages));
 
-  ECILanguageDialect a_default_language = lang_switcher_.InitLanguage();
+  ECILanguageDialect a_default_language = lang_switcher_->InitLanguage();
 
   if (a_default_language == NODEFINEDCODESET) {
     throw TTSError("No languages found\n");
@@ -191,7 +191,7 @@ TTS::TTS(AlsaPlayer *alsa_player, const Options &options)
       (eciSetParam(eci_handle_, eciSynthMode, 1) == -1) ||
       (eciSetParam(eci_handle_, eciSampleRate, options.sample_rate) == -1)) {
     eciDelete(eci_handle_);
-    throw ECIError("Could not initialized tts");
+    throw TTSError("Could not initialized tts");
   }
 
   eciRegisterCallback(
@@ -210,12 +210,12 @@ TTS::TTS(AlsaPlayer *alsa_player, const Options &options)
   // Set output to bufferl.
   rc = eciSynchronize(eci_handle_);
   if (!rc) {
-    throw ECIError("Error  resetting TTS engine.\n");
+    throw TTSError("Error  resetting TTS engine.\n");
   }
   rc = eciSetOutputBuffer(eci_handle_, alsa_player_->period_size(),
-                          alsa_player_->buffer());
+                          reinterpret_cast<short*>(alsa_player_->buffer()));
   if (!rc) {
-    throw ECIError("Error setting output buffer.\n");
+    throw TTSError("Error setting output buffer.\n");
   }
 }
 
