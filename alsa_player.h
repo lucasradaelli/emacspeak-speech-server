@@ -14,7 +14,7 @@ class AlsaPlayer {
 
     std::string device = "default";
     snd_pcm_format_t sample_format = SND_PCM_FORMAT_S16;
-    unsigned int sample_rate = 22050;
+    unsigned int sample_rate = 11025;
     unsigned int channels = 1;
   };
 

@@ -25,7 +25,7 @@ int (*eciPause_)(void *, int);
 int (*eciSynthesize_)(void *);
 int (*eciSynchronize_)(void *);
 int (*eciSpeaking_)(void *);
-int (*eciAddText_)(void *, char *);
+int (*eciAddText_)(void *, const char *);
 int (*eciInsertIndex_)(void *, int);
 int (*eciSetParam_)(void *, int, int);
 int (*eciGetVoiceParam_)(void *, int, int);
@@ -59,7 +59,7 @@ bool TTS::InitECI() {
   eciSynchronize_ = (int (*)(void *))dlsym(eciLib, "eciSynchronize");
   eciSpeaking_ = (int (*)(void *))dlsym(eciLib, "eciSpeaking");
   eciInsertIndex_ = (int (*)(void *, int))dlsym(eciLib, "eciInsertIndex");
-  eciAddText_ = (int (*)(void *, char *))dlsym(eciLib, "eciAddText");
+  eciAddText_ = (int (*)(void *, const char *))dlsym(eciLib, "eciAddText");
   eciSetParam_ = (int (*)(void *, int, int))dlsym(eciLib, "eciSetParam");
   eciGetVoiceParam_ =
       (int (*)(void *, int, int))dlsym(eciLib, "eciGetVoiceParam");
@@ -211,6 +211,32 @@ TTS::TTS(AlsaPlayer *alsa_player, const Options &options)
 }
 
 TTS::~TTS() { eciDelete_(eci_handle_); }
+
+bool TTS::Synthesize() {
+  if (eciSynthesize_(eci_handle_)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool TTS::AddText(const string& msg) {
+  if (eciAddText_(eci_handle_, msg.c_str())) {
+      return true;
+    } else {
+      return false;
+    }
+}
+
+bool TTS::Say(const string& msg) {
+  if (!AddText(msg)) {
+    return false;
+  }
+  if (!Synthesize()) {
+    return false;
+  }
+  return true;
+}
 
 int TTS::PlayTTS(const int count) {
   alsa_player_->Play(count);

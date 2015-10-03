@@ -41,6 +41,12 @@ class TTS {
 
   static bool InitECI();
 
+  bool Synthesize();
+
+  bool AddText(const std::string& msg);
+
+  bool Say(const std::string& msg);
+
   int PlayTTS(const int count);
 
   bool IsSpeaking();

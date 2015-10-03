@@ -1,37 +1,27 @@
 #ifndef _COMMAND_GENERATOR_H_
 #define _COMMAND_GENERATOR_H_
-#include <map>
-#include "command_handler.h"
+
+#include <unordered_map>
+#include "commands.h"
+#include "server_state.h"
 #include <string>
 
 
 
-
-class CommandGeneratorBase {
+class CommandRegistry {
  public:
-  CommandGeneratorBase() = default;
-  virtual ~CommandGeneratorBase() = default;
-  virtual CommandHandlerBase* MakeCommand(const std::string& params)     { return nullptr;}
-  virtual CommandHandlerBase* MakeCommand()  { return nullptr;}
-  virtual bool HasParams() = 0;
-};
+  CommandRegistry(TTS* tts, ServerState* server_state);
+  ~CommandRegistry() = default;
 
+ Command* GetCommand(const std::string& command_name);
 
-class VersionCommandGenerator : public CommandGeneratorBase {
- public:
-  VersionCommandGenerator() = default;
-virtual ~VersionCommandGenerator() = default;
- bool HasParams() { return false;}
-  virtual CommandHandlerBase* MakeCommand()  override;
-};
-
-class CommandGeneratorRegistry {
- public:
- CommandGeneratorRegistry();
-  ~CommandGeneratorRegistry() = default;
- CommandGeneratorBase* GetCommandGenerator(const std::string& command_name);
  private:
-  std::map<std::string,CommandGeneratorBase*> commands_map_;
+
+  TTS* tts_;
+  ServerState* server_state_;
+
+  std::unordered_map<std::string,Command*> commands_map_;
 
 };
+
 #endif

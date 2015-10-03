@@ -1,0 +1,36 @@
+#ifndef SPEECH_SERVER_H_
+#define SPEECH_SERVER_H_
+
+#include <tuple>
+
+#include "command_generator.h"
+#include "tts.h"
+#include "server_state.h"
+
+
+
+
+class SpeechServer {
+ public:
+  SpeechServer(TTS* tts) : tts_(tts)  {
+
+    cmd_registry_.reset(new CommandRegistry(tts_, &server_state_));
+}
+  ~SpeechServer() = default;
+
+  ServerStatus Service();
+
+  int MainLoop();
+
+  std::tuple<std::string,std::string> ProcessInput();
+
+ private:
+
+  TTS* tts_;
+  ServerState server_state_;
+  std::unique_ptr<CommandRegistry> cmd_registry_;
+
+};
+
+
+#endif // SPEECH_SERVER_H_

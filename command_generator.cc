@@ -1,20 +1,17 @@
 #include "command_generator.h"
-#include "command_handler.h"
-#include <map>
+
+#include <unordered_map>
 #include <iostream>
 
-CommandHandlerBase* VersionCommandGenerator::MakeCommand() {
-  CommandHandlerBase* handler = new VersionCommandHandler();
-  return handler;
+#include "commands.h"
+
+
+CommandRegistry::CommandRegistry(TTS* tts, ServerState* server_state)  : tts_(tts), server_state_(server_state) {
+  commands_map_["version"] = new VersionCommand(tts_, server_state_);
+    commands_map_["tts_say"] = new TtsSayCommand(tts_, server_state_);
 }
 
-CommandGeneratorRegistry::CommandGeneratorRegistry() {
-  commands_map_["version"] = new VersionCommandGenerator();
-  // commands_map_["tts_say"] = new TtsSayCommandGenerator();
-  // commands_map_["l"] = new LCommandGenerator();
-}
-
-CommandGeneratorBase* CommandGeneratorRegistry::GetCommandGenerator(
+Command* CommandRegistry::GetCommand(
     const std::string& command_name) {
   if (commands_map_.find(command_name) == commands_map_.end()) {
  std::cout << "not found in the registry\n";
