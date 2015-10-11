@@ -9,6 +9,7 @@
 CommandRegistry::CommandRegistry(TTS* tts, ServerState* server_state)  : tts_(tts), server_state_(server_state) {
   commands_map_["version"] = new VersionCommand(tts_, server_state_);
     commands_map_["tts_say"] = new TtsSayCommand(tts_, server_state_);
+    commands_map_["l"] = new LCommand(tts_, server_state_);
 }
 
 Command* CommandRegistry::GetCommand(
