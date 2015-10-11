@@ -26,10 +26,17 @@ class SpeechServer {
 
  private:
 
+
+  std::string ReadLine();
+
+
   TTS* tts_;
   ServerState server_state_;
   std::unique_ptr<CommandRegistry> cmd_registry_;
 
+  char read_buffer_[4096];
+  size_t buffer_size_ = 0;
+  size_t buffer_start_;
 };
 
 

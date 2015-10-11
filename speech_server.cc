@@ -4,6 +4,7 @@
 #include <iostream>
 #include <poll.h>
 
+
 using std::cin;
 using std::cout;
 using std::string;
@@ -11,52 +12,48 @@ using std::string;
 
 namespace {
 
-void SkipWhiteSpace() {
-  while (cin.peek() == '\n' || isspace(cin.peek())) {
-    cin.get();
+void SkipWhiteSpace(char** buffer) {
+  while (**buffer  == '\n' || isspace(**buffer)) {
+    ++*buffer;
   }
   return;
 }
 
 
-string GetWordToken() {
+string GetWordToken(char** buffer) {
   string w_token;
-  while (cin.peek() != EOF && !isspace(cin.peek())) {
-    char c;
-    cin.get(c);
-    w_token.push_back(c);
+  while (**buffer != EOF && !isspace(**buffer)) {
+    w_token.push_back(**buffer);
+    ++*buffer;
   }
 
   return w_token;
 }
 
-string GetBracedToken() {
+string GetBracedToken(char** buffer) {
   string b_token;
   // Ignores the first value -- it is the {.
-  cin.get();
-  while (cin.peek() != '}' && cin.peek() != EOF) {
-    char c;
-    cin.get(c);
-    b_token.push_back(c);
+  ++*buffer;
+  while (**buffer != '}' && **buffer != EOF) {
+    b_token.push_back(**buffer);
+    ++*buffer;
   }
-  if (cin.peek() == '}') {
-    cin.get();
+  if (**buffer == '}') {
+    ++*buffer;
   }
 
   return b_token;
 }
 
 
-string GetToken() {
-  SkipWhiteSpace();
-  if (cin.peek() == EOF) {
-    return "exit";
-  }
+string GetToken(char** buffer) {
+  SkipWhiteSpace(buffer);
+
   string token;
-  if (cin.peek() == '{') {
-    token = GetBracedToken();
+  if (**buffer == '{') {
+    token = GetBracedToken(buffer);
   } else {
-    token = GetWordToken();
+    token = GetWordToken(buffer);
   }
   return token;
 }
@@ -68,8 +65,8 @@ string GetToken() {
 ServerStatus SpeechServer::Service() {
   bool is_speaking = tts_->IsSpeaking();
   pollfd fds[1];
-  fds[1].fd = fileno(stdin);
-  fds[1].events = POLLIN;
+  fds[0].fd = fileno(stdin);
+  fds[0].events = POLLIN;
 
   while (is_speaking) {
 int rc =     poll(fds, 1, 5);
@@ -109,18 +106,60 @@ int SpeechServer::MainLoop() {
 }
 
 
+string SpeechServer::ReadLine() {
+  string line;
+  if (buffer_size_ > 0) {
+for (size_t i = buffer_start_; i < buffer_size_; ++i) {
+line.push_back(read_buffer_[i]);
+if (read_buffer_[i] == '\n') {
+buffer_start_ = i;
+buffer_size_ = buffer_size_ -1 - i;
+return line;
+}
+}
+  }
+
+  size_t size;
+  while (true) {
+size  = read(0, read_buffer_, sizeof(read_buffer_));
+  if (size <= 0) {
+    // TODO: Handle errors.
+    break;
+  } else if (size == 0) {
+return "";
+} else {
+for (size_t i = 0; i < size; ++i) {
+line.push_back(read_buffer_[i]);
+if (read_buffer_[i] == '\n') {
+buffer_start_ = i;
+buffer_size_ = size -1 - i;
+return line;
+}
+}
+}
+  }
+return line;
+}
+
+
+
 
 std::tuple<string,string> SpeechServer::ProcessInput() {
   string command_name, args = "";
-  command_name = GetToken();
+  // Read the next input line.
+  string line = ReadLine();
+  if (line.empty()) {
+    return std::make_tuple("", "");
+  }
+  // Parses the line into command name and args.
+  char* start = &line[0];
+
+  command_name = GetToken(&start);
   cout << "read " << command_name << "\n";
-  if (cin.peek() != '\n') {
-    args = GetToken();
+  if (*start != '\n') {
+    args = GetToken(&start);
     cout << "read " << args << " as args\n";
   }
-  while (cin.peek() != EOF) {
-    cin.get();
-  }
-  cin.get();
+
   return std::make_tuple(command_name, args);
 }
