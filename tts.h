@@ -55,6 +55,8 @@ class TTS {
 
   void SetLastReply(const long lparam) { lparam_ = lparam; }
 
+  std::string TTSVersion();
+
  private:
   void* eci_handle_;
   AlsaPlayer* alsa_player_;

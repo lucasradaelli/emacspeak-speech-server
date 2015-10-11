@@ -5,7 +5,12 @@
 using std::string;
 
 bool VersionCommand::Run() {
-
+  const string prefix = server_state_->GetPrefixString();
+  const string tts_version = tts_->TTSVersion();
+  const string msg = prefix + "viavoice " +  tts_version;
+  if (!tts_->Say(msg)) {
+    return false;
+  }
   return true;
 }
 

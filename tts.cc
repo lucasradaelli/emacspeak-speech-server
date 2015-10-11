@@ -260,6 +260,14 @@ bool TTS::Synchronize() {
   }
 }
 
+
+string TTS::TTSVersion() {
+  std::unique_ptr<char[]> version( new char[20]);
+  eciVersion_(version.get());
+  return string(version.get());
+}
+
+
 string LangSwitcher::GetDefaultLanguageCode() {
   const char *a_default_lang = getenv("LANGUAGE");
   if (a_default_lang == NULL) {
