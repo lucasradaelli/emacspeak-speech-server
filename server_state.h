@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 
+#include "messages.h"
+
 enum ServerStatus {
   DATA_PROCESSED = 0,
   COMMAND_PENDING = 1
@@ -31,9 +33,11 @@ class ServerState {
     server_status_ = server_status;
   }
 
+  std::queue<std::unique_ptr<Message>>& messages() { return messages_; }
+
  private:
   int speech_rate_ = 50;
-  std::queue<std::string> messages_;
+  std::queue<std::unique_ptr<Message>> messages_;
   std::string last_command_;
   ServerStatus server_status_;
 

@@ -69,4 +69,16 @@ class SCommand : public Command {
   bool Run() override;
 };
 
+class QCommand : public Command {
+ public:
+  QCommand(TTS* tts, ServerState* server_state) : Command(tts, server_state) {}
+  bool Run() override;
+};
+
+class DCommand : public Command {
+ public:
+  DCommand(TTS* tts, ServerState* server_state) : Command(tts, server_state) {}
+  bool Run() override;
+};
+
 #endif  // COMMANDS_H_

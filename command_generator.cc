@@ -19,6 +19,8 @@ CommandRegistry::CommandRegistry(TTS* tts, ServerState* server_state)
   commands_map_["tts_resume"] =
       unique_ptr<Command>(new TtsResumeCommand(tts_, server_state_));
   commands_map_["s"] = unique_ptr<Command>(new SCommand(tts_, server_state_));
+  commands_map_["q"] = unique_ptr<Command>(new QCommand(tts_, server_state_));
+  commands_map_["d"] = unique_ptr<Command>(new DCommand(tts_, server_state_));
 }
 
 Command* CommandRegistry::GetCommand(const std::string& command_name) {

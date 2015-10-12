@@ -57,3 +57,18 @@ bool SCommand::Run() {
   }
   return false;
 }
+
+bool QCommand::Run() {
+  std::unique_ptr<Message> message(
+      new SpeechMessage(server_state_->GetLastArgs()));
+  server_state_->messages().push(std::move(message));
+  return true;
+}
+
+bool DCommand::Run() {
+  while (!server_state_->messages().empty()) {
+    server_state_->messages().front()->Do(tts_, server_state_);
+    server_state_->messages().pop();
+  }
+  return true;
+}
