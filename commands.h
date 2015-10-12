@@ -10,7 +10,8 @@
 // the tts and the server state objects.
 class Command {
  public:
-  Command(TTS* tts, ServerState* server_state) : tts_(tts), server_state_(server_state) {}
+  Command(TTS* tts, ServerState* server_state)
+      : tts_(tts), server_state_(server_state) {}
   virtual ~Command() = default;
   virtual bool Run() = 0;
 
@@ -23,7 +24,8 @@ class Command {
 // output with the result.
 class VersionCommand : public Command {
  public:
-  VersionCommand(TTS* tts, ServerState* server_state) : Command(tts,server_state) {}
+  VersionCommand(TTS* tts, ServerState* server_state)
+      : Command(tts, server_state) {}
   bool Run() override;
 };
 
@@ -32,15 +34,32 @@ class VersionCommand : public Command {
 // speech speed.
 class TtsSayCommand : public Command {
  public:
-  TtsSayCommand(TTS* tts, ServerState* server_state) : Command(tts,server_state) {}
+  TtsSayCommand(TTS* tts, ServerState* server_state)
+      : Command(tts, server_state) {}
   bool Run() override;
 };
 
 // Speakes immediately the given letter.
-class LCommand : public Command{
-public:
-LCommand(TTS* tts, ServerState* server_state) : Command(tts,server_state) {}
+class LCommand : public Command {
+ public:
+  LCommand(TTS* tts, ServerState* server_state) : Command(tts, server_state) {}
   bool Run() override;
 };
 
-#endif // COMMANDS_H_
+// Pauses the speech. The speech can be resumed by calling TtsResumeCommand.
+class TtsPauseCommand : public Command {
+ public:
+  TtsPauseCommand(TTS* tts, ServerState* server_state)
+      : Command(tts, server_state) {}
+  bool Run() override;
+};
+
+// Resumes the speech previously paused.
+class TtsResumeCommand : public Command {
+ public:
+  TtsResumeCommand(TTS* tts, ServerState* server_state)
+      : Command(tts, server_state) {}
+  bool Run() override;
+};
+
+#endif  // COMMANDS_H_

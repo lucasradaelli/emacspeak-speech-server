@@ -40,3 +40,17 @@ bool LCommand::Run() {
   }
   return true;
 }
+
+bool TtsPauseCommand::Run() {
+  if (tts_->Pause()) {
+    return true;
+  }
+  return false;
+}
+
+bool TtsResumeCommand::Run() {
+  if (tts_->Resume()) {
+    return true;
+  }
+  return false;
+}

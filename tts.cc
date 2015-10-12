@@ -261,6 +261,21 @@ bool TTS::Synchronize() {
 }
 
 
+bool TTS::Pause() {
+  if (eciPause_(eci_handle_, 1))  {
+      return true;
+    }
+    return false;
+}
+
+bool TTS::Resume() {
+  if (eciPause_(eci_handle_, 0))  {
+      return true;
+    }
+    return false;
+}
+
+
 string TTS::TTSVersion() {
   std::unique_ptr<char[]> version( new char[20]);
   eciVersion_(version.get());

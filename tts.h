@@ -53,6 +53,10 @@ class TTS {
 
   bool Synchronize();
 
+  bool Pause();
+
+  bool Resume();
+
   void SetLastReply(const long lparam) { lparam_ = lparam; }
 
   std::string TTSVersion();

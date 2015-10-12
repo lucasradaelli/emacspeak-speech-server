@@ -4,21 +4,18 @@
 #include <iostream>
 #include <poll.h>
 
-
 using std::cin;
 using std::cout;
 using std::string;
 
-
 namespace {
 
 void SkipWhiteSpace(char** buffer) {
-  while (**buffer  == '\n' || isspace(**buffer)) {
+  while (**buffer == '\n' || isspace(**buffer)) {
     ++*buffer;
   }
   return;
 }
-
 
 string GetWordToken(char** buffer) {
   string w_token;
@@ -45,7 +42,6 @@ string GetBracedToken(char** buffer) {
   return b_token;
 }
 
-
 string GetToken(char** buffer) {
   SkipWhiteSpace(buffer);
 
@@ -58,9 +54,7 @@ string GetToken(char** buffer) {
   return token;
 }
 
-
-
-} // namespace
+}  // namespace
 
 ServerStatus SpeechServer::Service() {
   bool is_speaking = tts_->IsSpeaking();
@@ -69,82 +63,85 @@ ServerStatus SpeechServer::Service() {
   fds[0].events = POLLIN;
 
   while (is_speaking) {
-int rc =     poll(fds, 1, 5);
-if (rc) {
-  cout << "there is data to read";
-  break;
-} else {
-  is_speaking = tts_->IsSpeaking();
-}
+    int rc = poll(fds, 1, 5);
+    if (rc) {
+      cout << "there is data to read";
+      break;
+    } else {
+      is_speaking = tts_->IsSpeaking();
+    }
   }
-  return  !is_speaking ?DATA_PROCESSED : COMMAND_PENDING;
+  return !is_speaking ? DATA_PROCESSED : COMMAND_PENDING;
 }
-
-
 
 int SpeechServer::MainLoop() {
- bool running = true;
- while (running) {
-   string command_name;
-   std::tie(command_name, *server_state_.GetMutableLastArgs()) = ProcessInput();
-   if (command_name.empty()) {
-     continue;
-   }
-   cout << command_name << "\n";
-   Command* command =
-       cmd_registry_->GetCommand(command_name);
-   if (command == nullptr) {
-     cout << "invalid command\n";
-     continue;
-   }
-   command->Run();
+  bool running = true;
+  while (running) {
+    string command_name;
+    std::tie(command_name, *server_state_.GetMutableLastArgs()) =
+        ProcessInput();
+    if (command_name.empty()) {
+      continue;
+    }
+    cout << command_name << "\n";
+    Command* command = cmd_registry_->GetCommand(command_name);
+    if (command == nullptr) {
+      cout << "invalid command\n";
+      continue;
+    }
+    command->Run();
 
-   Service();
-   }
+    Service();
+  }
 
   return 0;
 }
 
-
 string SpeechServer::ReadLine() {
   string line;
   if (buffer_size_ > 0) {
-for (size_t i = buffer_start_; i < buffer_size_; ++i) {
-line.push_back(read_buffer_[i]);
-if (read_buffer_[i] == '\n') {
-buffer_start_ = i;
-buffer_size_ = buffer_size_ -1 - i;
-return line;
-}
-}
+    // If the buffer size is greater than zero, this means that there is still
+    // data in our internal buffer. this can happen, for example, if we've read
+    // two lines of input at once in the previous call to ReadLine. Since we
+    // return only one line per call, we need to check the buffer to see if
+    // there is still data left to be processed.
+    for (size_t i = buffer_start_; i < buffer_size_; ++i) {
+      line.push_back(read_buffer_[i]);
+      if (read_buffer_[i] == '\n') {
+        // End of line. Update the buffer information and return the line.
+        buffer_start_ = i;
+        buffer_size_ = buffer_size_ - 1 - i;
+        return line;
+      }
+    }
   }
 
   size_t size;
   while (true) {
-size  = read(0, read_buffer_, sizeof(read_buffer_));
-  if (size <= 0) {
-    // TODO: Handle errors.
-    break;
-  } else if (size == 0) {
-return "";
-} else {
-for (size_t i = 0; i < size; ++i) {
-line.push_back(read_buffer_[i]);
-if (read_buffer_[i] == '\n') {
-buffer_start_ = i;
-buffer_size_ = size -1 - i;
-return line;
-}
-}
-}
+    size = read(0, read_buffer_, sizeof(read_buffer_));
+    if (size == -1) {
+      if (errno == EINTR) { /* Interrupted --> restart read() */
+        continue;
+      } else { /* Some other error*/
+        return "";
+      }
+    } else if (size == 0) { /* Found EOF */
+      return "exit\n";
+    } else {
+      for (size_t i = 0; i < size; ++i) {
+        line.push_back(read_buffer_[i]);
+        if (read_buffer_[i] == '\n') {
+          buffer_start_ = i;
+          buffer_size_ = size - 1 - i;
+          return line;
+        }
+      }
+    }
   }
-return line;
+  return line;
 }
 
-
-
-
-std::tuple<string,string> SpeechServer::ProcessInput() {
+std::tuple<string, string> SpeechServer::ProcessInput() {
   string command_name, args = "";
   // Read the next input line.
   string line = ReadLine();
@@ -156,7 +153,7 @@ std::tuple<string,string> SpeechServer::ProcessInput() {
 
   command_name = GetToken(&start);
   cout << "read " << command_name << "\n";
-  if (*start != '\n') {
+  if (*start != '\n' && *start != '\0') {
     args = GetToken(&start);
     cout << "read " << args << " as args\n";
   }
