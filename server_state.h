@@ -7,7 +7,7 @@
 
 enum ServerStatus {
   DATA_PROCESSED = 0,
-  COMMAND_PENDING = 1z
+  COMMAND_PENDING = 1
 };
 
 class ServerState {
