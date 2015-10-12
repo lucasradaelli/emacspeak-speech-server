@@ -12,6 +12,7 @@ CommandRegistry::CommandRegistry(TTS* tts, ServerState* server_state)  : tts_(tt
     commands_map_["l"] = new LCommand(tts_, server_state_);
     commands_map_["tts_pause"] = new TtsPauseCommand(tts_, server_state_);
     commands_map_["tts_resume"] = new TtsResumeCommand(tts_, server_state_);
+    commands_map_["s"] = new SCommand(tts_, server_state_);
 
 }
 

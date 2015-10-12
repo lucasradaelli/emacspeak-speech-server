@@ -54,3 +54,10 @@ bool TtsResumeCommand::Run() {
   }
   return false;
 }
+
+bool SCommand::Run() {
+  if (tts_->Stop()) {
+    return true;
+  }
+  return false;
+}

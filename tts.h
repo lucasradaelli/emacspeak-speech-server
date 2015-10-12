@@ -57,6 +57,8 @@ class TTS {
 
   bool Resume();
 
+  bool Stop();
+
   void SetLastReply(const long lparam) { lparam_ = lparam; }
 
   std::string TTSVersion();

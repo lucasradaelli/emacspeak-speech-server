@@ -62,4 +62,11 @@ class TtsResumeCommand : public Command {
   bool Run() override;
 };
 
+// Stops the speech.
+class SCommand : public Command {
+ public:
+  SCommand(TTS* tts, ServerState* server_state) : Command(tts, server_state) {}
+  bool Run() override;
+};
+
 #endif  // COMMANDS_H_

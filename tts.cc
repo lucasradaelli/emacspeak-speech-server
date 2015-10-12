@@ -275,6 +275,14 @@ bool TTS::Resume() {
     return false;
 }
 
+bool TTS::Stop() {
+  if (eciStop_(eci_handle_)) {
+    alsa_player_->Reset();
+    usleep(10);
+    return true;
+  }
+  return false;
+}
 
 string TTS::TTSVersion() {
   std::unique_ptr<char[]> version( new char[20]);

@@ -29,6 +29,7 @@ class AlsaPlayer {
   std::size_t Play(int count);
   void Interrupt();
 
+  void Reset();
  private:
   void SetupPCM();
   void RecoverFromUnderrun();

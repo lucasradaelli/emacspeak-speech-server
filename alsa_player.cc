@@ -136,6 +136,11 @@ void AlsaPlayer::RecoverFromSuspend() {
   fprintf(stderr, "Done.\n");
 }
 
+void AlsaPlayer::Reset() {
+  snd_pcm_drop(pcm_);
+  snd_pcm_prepare(pcm_);
+}
+
 std::string AlsaError::GenerateMessage(const std::string& arg, int code) {
   std::ostringstream sstr;
   sstr << "AlsaError: " << arg << " (" << snd_strerror(code) << ").";
