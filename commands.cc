@@ -42,17 +42,13 @@ bool LCommand::Run() {
 }
 
 bool TtsPauseCommand::Run() {
-  if (tts_->Pause()) {
-    return true;
-  }
-  return false;
+  tts_->player()->Pause();
+  return true;
 }
 
 bool TtsResumeCommand::Run() {
-  if (tts_->Resume()) {
-    return true;
-  }
-  return false;
+  tts_->player()->Resume();
+  return true;
 }
 
 bool SCommand::Run() {

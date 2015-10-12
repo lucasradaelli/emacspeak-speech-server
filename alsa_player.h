@@ -31,9 +31,11 @@ class AlsaPlayer {
   std::vector<struct pollfd> GetPollDescriptors() const;
   int GetPollEvents(struct pollfd *fds, int nfds) const;
   std::size_t Play(int count);
+  void Drain();
+  void Pause();
+  void Resume();
   void Interrupt();
 
-  void Reset();
  private:
   void SetupPCM();
   void RecoverFromUnderrun();

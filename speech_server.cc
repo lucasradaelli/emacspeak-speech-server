@@ -97,27 +97,25 @@ int SpeechServer::MainLoop() {
       throw;  // TODO: make a proper exception
     }
 
-    for (auto& fd : fds) {
-      if (fd.fd == STDIN_FILENO) {
-        string command_name;
-        std::tie(command_name, *server_state_.GetMutableLastArgs()) =
-            ProcessInput();
-        if (command_name.empty()) {
-          continue;
-        }
-        cout << command_name << "\n";
-        Command* command = cmd_registry_->GetCommand(command_name);
-        if (command == nullptr) {
-          cout << "invalid command\n";
-          continue;
-        }
-        command->Run();
+    if (fds[0].fd == STDIN_FILENO && fds[0].revents != 0) {
+      string command_name;
+      std::tie(command_name, *server_state_.GetMutableLastArgs()) =
+          ProcessInput();
+      if (command_name.empty()) {
+        continue;
       }
+      cout << command_name << "\n";
+      Command* command = cmd_registry_->GetCommand(command_name);
+      if (command == nullptr) {
+        cout << "invalid command\n";
+        continue;
+      }
+      command->Run();
     }
 
     if (tts_->speaking() &&
         tts_->player()->GetPollEvents(fds.data() + 1, fds.size() - 1)) {
-      Service();
+      tts_->IsSpeaking();
     }
   }
 

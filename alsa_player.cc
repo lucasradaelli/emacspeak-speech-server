@@ -114,6 +114,19 @@ std::size_t AlsaPlayer::Play(int count) {
   return result;
 }
 
+void AlsaPlayer::Drain() {
+  snd_pcm_drain(pcm_);
+  snd_pcm_prepare(pcm_);
+}
+
+void AlsaPlayer::Pause() {
+  snd_pcm_pause(pcm_, true);
+}
+
+void AlsaPlayer::Resume() {
+  snd_pcm_pause(pcm_, false);
+}
+
 void AlsaPlayer::RecoverFromUnderrun() {
   snd_pcm_status_t* status;
   snd_pcm_status_alloca(&status);
@@ -160,11 +173,6 @@ void AlsaPlayer::RecoverFromSuspend() {
   }
 
   fprintf(stderr, "Done.\n");
-}
-
-void AlsaPlayer::Reset() {
-  snd_pcm_drop(pcm_);
-  snd_pcm_prepare(pcm_);
 }
 
 std::string AlsaError::GenerateMessage(const std::string& arg, int code) {

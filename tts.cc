@@ -279,7 +279,7 @@ bool TTS::Resume() {
 
 bool TTS::Stop() {
   if (eciStop_(eci_handle_)) {
-    alsa_player_->Reset();
+    alsa_player_->Interrupt();
     usleep(10);
     return true;
   }
