@@ -1,8 +1,11 @@
 #include "speech_server.h"
 
+#include <cerrno>
 #include <cstdio>
 #include <iostream>
+
 #include <poll.h>
+#include <unistd.h>
 
 using std::cin;
 using std::cout;
@@ -75,23 +78,47 @@ ServerStatus SpeechServer::Service() {
 }
 
 int SpeechServer::MainLoop() {
-  bool running = true;
-  while (running) {
-    string command_name;
-    std::tie(command_name, *server_state_.GetMutableLastArgs()) =
-        ProcessInput();
-    if (command_name.empty()) {
-      continue;
-    }
-    cout << command_name << "\n";
-    Command* command = cmd_registry_->GetCommand(command_name);
-    if (command == nullptr) {
-      cout << "invalid command\n";
-      continue;
-    }
-    command->Run();
+  for (;;) {
+    // Always expect input from the stdin descriptor, to process commands.
+    std::vector<struct pollfd> fds(1);
+    fds[0].fd = STDIN_FILENO;
+    fds[0].events = POLLIN | POLLERR;
 
-    Service();
+    if (tts_->speaking()) {
+      auto alsa_fds = tts_->player()->GetPollDescriptors();
+      std::copy(std::make_move_iterator(alsa_fds.begin()),
+                std::make_move_iterator(alsa_fds.end()),
+                std::back_inserter(fds));
+    }
+
+    int r = poll(fds.data(), fds.size(), -1);
+    if (r < 0) {
+      if (errno == EINTR) continue;
+      throw;  // TODO: make a proper exception
+    }
+
+    for (auto& fd : fds) {
+      if (fd.fd == STDIN_FILENO) {
+        string command_name;
+        std::tie(command_name, *server_state_.GetMutableLastArgs()) =
+            ProcessInput();
+        if (command_name.empty()) {
+          continue;
+        }
+        cout << command_name << "\n";
+        Command* command = cmd_registry_->GetCommand(command_name);
+        if (command == nullptr) {
+          cout << "invalid command\n";
+          continue;
+        }
+        command->Run();
+      }
+    }
+
+    if (tts_->speaking() &&
+        tts_->player()->GetPollEvents(fds.data() + 1, fds.size() - 1)) {
+      Service();
+    }
   }
 
   return 0;
@@ -116,9 +143,8 @@ string SpeechServer::ReadLine() {
     }
   }
 
-  size_t size;
   while (true) {
-    size = read(0, read_buffer_, sizeof(read_buffer_));
+    auto size = read(0, read_buffer_, sizeof(read_buffer_));
     if (size == -1) {
       if (errno == EINTR) { /* Interrupted --> restart read() */
         continue;
@@ -128,7 +154,7 @@ string SpeechServer::ReadLine() {
     } else if (size == 0) { /* Found EOF */
       return "exit\n";
     } else {
-      for (size_t i = 0; i < size; ++i) {
+      for (ssize_t i = 0; i < size; ++i) {
         line.push_back(read_buffer_[i]);
         if (read_buffer_[i] == '\n') {
           buffer_start_ = i;

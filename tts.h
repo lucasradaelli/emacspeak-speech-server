@@ -63,10 +63,17 @@ class TTS {
 
   std::string TTSVersion();
 
+  AlsaPlayer* player() const { return alsa_player_; }
+  bool speaking() const { return speaking_; }
+
  private:
   void* eci_handle_;
   AlsaPlayer* alsa_player_;
   std::unique_ptr<LangSwitcher> lang_switcher_;
+
+  // Is true whenever there is data to send to the sound output.
+  bool speaking_ = false;
+
   long lparam_;
 };
 

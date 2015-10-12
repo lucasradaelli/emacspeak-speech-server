@@ -214,6 +214,7 @@ TTS::~TTS() { eciDelete_(eci_handle_); }
 
 bool TTS::Synthesize() {
   if (eciSynthesize_(eci_handle_)) {
+    speaking_ = true;
     return true;
   } else {
     return false;
@@ -247,6 +248,7 @@ bool TTS::IsSpeaking() {
   if (eciSpeaking_(eci_handle_)) {
     return true;
   } else {
+    speaking_ = false;
     return false;
   }
 }

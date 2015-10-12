@@ -4,7 +4,9 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
+#include <poll.h>
 #include <alsa/asoundlib.h>
 
 class AlsaPlayer {
@@ -26,6 +28,8 @@ class AlsaPlayer {
   unsigned int period_size() const { return period_size_; }
   char* buffer() const { return buffer_.get(); }
 
+  std::vector<struct pollfd> GetPollDescriptors() const;
+  int GetPollEvents(struct pollfd *fds, int nfds) const;
   std::size_t Play(int count);
   void Interrupt();
 

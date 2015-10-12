@@ -52,6 +52,32 @@ void AlsaPlayer::SetupPCM() {
   check(snd_pcm_hw_params_get_buffer_size(params, &buffer_size_));
 }
 
+std::vector<struct pollfd> AlsaPlayer::GetPollDescriptors() const {
+  std::vector<struct pollfd> fds;
+
+  int num_descriptors = snd_pcm_poll_descriptors_count(pcm_);
+  if (num_descriptors > 0) {
+    fds.resize(num_descriptors);
+    int error = snd_pcm_poll_descriptors(pcm_, fds.data(), fds.size());
+    if (error < 0) {
+      throw AlsaError("Failed to retrieve descriptors for poll() from ALSA.",
+                      error);
+    }
+  }
+
+  return fds;
+}
+
+int AlsaPlayer::GetPollEvents(struct pollfd* fds, int nfds) const {
+  unsigned short revents;
+  int error = snd_pcm_poll_descriptors_revents(pcm_, fds, nfds, &revents);
+  if (error < 0) {
+    throw AlsaError("Failed to retrieve descriptors for poll() from ALSA.",
+                    error);
+  }
+  return revents;
+}
+
 void AlsaPlayer::Interrupt() {
   snd_pcm_drop(pcm_);
   snd_pcm_prepare(pcm_);
