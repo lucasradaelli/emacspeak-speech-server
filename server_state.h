@@ -7,7 +7,7 @@
 
 enum ServerStatus {
   DATA_PROCESSED = 0,
-  COMMAND_PENDING = 1
+  COMMAND_PENDING = 1z
 };
 
 class ServerState {
@@ -23,23 +23,21 @@ class ServerState {
 
   const std::string& GetLastArgs() const { return *last_args_.get(); }
 
-
   const std::string GetPrefixString() const;
 
   ServerStatus GetServerStatus() const { return server_status_; }
 
-  void SetServerStatus(const ServerStatus server_status) { server_status_ = server_status;}
-
+  void SetServerStatus(const ServerStatus server_status) {
+    server_status_ = server_status;
+  }
 
  private:
-
   int speech_rate_ = 50;
   std::queue<std::string> messages_;
   std::string last_command_;
   ServerStatus server_status_;
 
   std::unique_ptr<std::string> last_args_;
-
 };
 
-#endif // SERVER_STATE_H_
+#endif  // SERVER_STATE_H_
