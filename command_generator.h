@@ -20,7 +20,7 @@ class CommandRegistry {
   TTS* tts_;
   ServerState* server_state_;
 
-  std::unordered_map<std::string,Command*> commands_map_;
+  std::unordered_map<std::string,std::unique_ptr<Command>> commands_map_;
 
 };
 
