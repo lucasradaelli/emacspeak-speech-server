@@ -81,3 +81,15 @@ bool CCommand::Run(TTS* tts, ServerState* server_state) {
   server_state->messages().push(std::move(message));
   return true;
 }
+
+bool ShCommand::Run(TTS* tts, ServerState* server_state) {
+  int duration = atoi(server_state->GetLastArgs().c_str());
+  if (duration <= 0) {
+    return false;
+  }
+
+  unique_ptr<Message> message(
+      new SilenceMessage(duration));
+  server_state->messages().push(std::move(message));
+  return true;
+}

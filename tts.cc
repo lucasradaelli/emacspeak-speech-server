@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <string>
+#include <sstream>
 
 using std::string;
 using std::vector;
@@ -238,6 +239,16 @@ bool TTS::Say(const string& msg) {
   }
   return true;
 }
+
+
+bool TTS::GenerateSilence(const int duration) {
+  // The ECI library has a special code to insert silence during speech. We
+  // create a message of this form and simply Say() it.
+  std::ostringstream msg;
+  msg << "`p" << duration;
+  return Say(msg.str());
+}
+
 
 int TTS::PlayTTS(const int count) {
   alsa_player_->Play(count);

@@ -47,6 +47,8 @@ class TTS {
 
   bool Say(const std::string& msg);
 
+  bool GenerateSilence(const int duration);
+
   int PlayTTS(const int count);
 
   bool IsSpeaking();

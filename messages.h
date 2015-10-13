@@ -34,4 +34,14 @@ class CodeMessage : public Message {
   std::string text_;
 };
 
+
+class SilenceMessage : public Message {
+ public:
+  SilenceMessage(const int duration);
+  virtual void Do(TTS* tts, ServerState* server_state) override;
+
+ private:
+  int duration_;
+};
+
 #endif  // MESSAGES_H_

@@ -80,4 +80,11 @@ class CCommand : public Command {
     bool Run(TTS* tts, ServerState* server_state) override;
 };
 
+// Queues a message of type silence.
+class ShCommand : public Command {
+ public:
+  ShCommand() = default;
+    bool Run(TTS* tts, ServerState* server_state) override;
+};
+
 #endif  // COMMANDS_H_

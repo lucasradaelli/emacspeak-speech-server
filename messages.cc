@@ -11,6 +11,10 @@ void SpeechMessage::Do(TTS* tts, ServerState* server_state) {
 
 CodeMessage::CodeMessage(std::string text) : text_(std::move(text)) {}
 
-void CodeMessage::Do(TTS* tts, ServerState* server_state) {
-  tts->Say(text_);
+void CodeMessage::Do(TTS* tts, ServerState* server_state) { tts->Say(text_); }
+
+SilenceMessage::SilenceMessage(const int duration) : duration_(duration) {}
+
+void SilenceMessage::Do(TTS* tts, ServerState* server_state) {
+  tts->GenerateSilence(duration_);
 }

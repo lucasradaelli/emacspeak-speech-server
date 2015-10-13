@@ -21,6 +21,7 @@ CommandRegistry::CommandRegistry() {
   commands_map_["q"] = unique_ptr<Command>(new QCommand());
   commands_map_["d"] = unique_ptr<Command>(new DCommand());
   commands_map_["c"] = unique_ptr<Command>(new CCommand());
+  commands_map_["sh"] = unique_ptr<Command>(new ShCommand());
 }
 
 Command* CommandRegistry::GetCommand(const std::string& command_name) {
