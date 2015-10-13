@@ -35,6 +35,8 @@ class ServerState {
 
   std::queue<std::unique_ptr<Message>>& messages() { return messages_; }
 
+  void ClearMessageQueue();
+
  private:
   int speech_rate_ = 50;
   std::queue<std::unique_ptr<Message>> messages_;

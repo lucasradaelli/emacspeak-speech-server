@@ -53,6 +53,7 @@ bool TtsResumeCommand::Run(TTS* tts, ServerState* server_state) {
 
 bool SCommand::Run(TTS* tts, ServerState* server_state) {
   if (tts->Stop()) {
+    server_state->ClearMessageQueue();
     return true;
   }
   return false;
