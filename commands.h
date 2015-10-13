@@ -72,4 +72,12 @@ class DCommand : public Command {
     bool Run(TTS* tts, ServerState* server_state) override;
 };
 
+// Queues a code to be sent to the speech engine. No text formatting is applied
+// to the passed args.
+class CCommand : public Command {
+ public:
+  CCommand() = default;
+    bool Run(TTS* tts, ServerState* server_state) override;
+};
+
 #endif  // COMMANDS_H_

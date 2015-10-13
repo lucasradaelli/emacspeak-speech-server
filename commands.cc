@@ -2,6 +2,7 @@
 #include <iostream>
 
 using std::string;
+using std::unique_ptr;
 
 bool VersionCommand::Run(TTS* tts, ServerState* server_state) {
   const string prefix = server_state->GetPrefixString();
@@ -60,7 +61,7 @@ bool SCommand::Run(TTS* tts, ServerState* server_state) {
 }
 
 bool QCommand::Run(TTS* tts, ServerState* server_state) {
-  std::unique_ptr<Message> message(
+  unique_ptr<Message> message(
       new SpeechMessage(server_state->GetLastArgs()));
   server_state->messages().push(std::move(message));
   return true;
@@ -71,5 +72,12 @@ bool DCommand::Run(TTS* tts, ServerState* server_state) {
     server_state->messages().front()->Do(tts, server_state);
     server_state->messages().pop();
   }
+  return true;
+}
+
+bool CCommand::Run(TTS* tts, ServerState* server_state) {
+  unique_ptr<Message> message(
+      new CodeMessage(server_state->GetLastArgs()));
+  server_state->messages().push(std::move(message));
   return true;
 }
