@@ -110,7 +110,7 @@ int SpeechServer::MainLoop() {
         cout << "invalid command\n";
         continue;
       }
-      command->Run();
+      command->Run(tts_, &server_state_);
     }
 
     if (tts_->speaking() &&

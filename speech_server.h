@@ -10,7 +10,7 @@
 class SpeechServer {
  public:
   SpeechServer(TTS* tts) : tts_(tts) {
-    cmd_registry_.reset(new CommandRegistry(tts_, &server_state_));
+    cmd_registry_.reset(new CommandRegistry());
   }
   ~SpeechServer() = default;
 

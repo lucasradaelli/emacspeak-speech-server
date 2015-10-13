@@ -3,29 +3,29 @@
 
 using std::string;
 
-bool VersionCommand::Run() {
-  const string prefix = server_state_->GetPrefixString();
-  const string tts_version = tts_->TTSVersion();
-  const string msg = prefix + "viavoice " + tts_version;
-  if (!tts_->Say(msg)) {
+bool VersionCommand::Run(TTS* tts, ServerState* server_state) {
+  const string prefix = server_state->GetPrefixString();
+  const string ttsversion = tts->TTSVersion();
+  const string msg = prefix + "viavoice " + ttsversion;
+  if (!tts->Say(msg)) {
     return false;
   }
   return true;
 }
 
-bool TtsSayCommand::Run() {
-  const string prefix = server_state_->GetPrefixString();
-  const string args = server_state_->GetLastArgs();
+bool TtsSayCommand::Run(TTS* tts, ServerState* server_state) {
+  const string prefix = server_state->GetPrefixString();
+  const string args = server_state->GetLastArgs();
   const string msg = prefix + args;
-  if (!tts_->Say(msg)) {
+  if (!tts->Say(msg)) {
     return false;
   }
   return true;
 }
 
-bool LCommand::Run() {
-  const string prefix = server_state_->GetPrefixString();
-  const string args = server_state_->GetLastArgs();
+bool LCommand::Run(TTS* tts, ServerState* server_state) {
+  const string prefix = server_state->GetPrefixString();
+  const string args = server_state->GetLastArgs();
   if (args.size() != 1) {
     // It only speaks a single character.
     return false;
@@ -35,40 +35,40 @@ bool LCommand::Run() {
     letter_pitch = "`vb80 ";
   }
   const string msg = prefix + letter_pitch + "`ts2 " + args + " `ts0";
-  if (!tts_->Say(msg)) {
+  if (!tts->Say(msg)) {
     return false;
   }
   return true;
 }
 
-bool TtsPauseCommand::Run() {
-  tts_->player()->Pause();
+bool TtsPauseCommand::Run(TTS* tts, ServerState* server_state) {
+  tts->player()->Pause();
   return true;
 }
 
-bool TtsResumeCommand::Run() {
-  tts_->player()->Resume();
+bool TtsResumeCommand::Run(TTS* tts, ServerState* server_state) {
+  tts->player()->Resume();
   return true;
 }
 
-bool SCommand::Run() {
-  if (tts_->Stop()) {
+bool SCommand::Run(TTS* tts, ServerState* server_state) {
+  if (tts->Stop()) {
     return true;
   }
   return false;
 }
 
-bool QCommand::Run() {
+bool QCommand::Run(TTS* tts, ServerState* server_state) {
   std::unique_ptr<Message> message(
-      new SpeechMessage(server_state_->GetLastArgs()));
-  server_state_->messages().push(std::move(message));
+      new SpeechMessage(server_state->GetLastArgs()));
+  server_state->messages().push(std::move(message));
   return true;
 }
 
-bool DCommand::Run() {
-  while (!server_state_->messages().empty()) {
-    server_state_->messages().front()->Do(tts_, server_state_);
-    server_state_->messages().pop();
+bool DCommand::Run(TTS* tts, ServerState* server_state) {
+  while (!server_state->messages().empty()) {
+    server_state->messages().front()->Do(tts, server_state);
+    server_state->messages().pop();
   }
   return true;
 }

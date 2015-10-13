@@ -7,20 +7,19 @@
 
 using std::unique_ptr;
 
-CommandRegistry::CommandRegistry(TTS* tts, ServerState* server_state)
-    : tts_(tts), server_state_(server_state) {
+CommandRegistry::CommandRegistry() {
   commands_map_["version"] =
-      unique_ptr<Command>(new VersionCommand(tts_, server_state_));
+      unique_ptr<Command>(new VersionCommand());
   commands_map_["tts_say"] =
-      unique_ptr<Command>(new TtsSayCommand(tts_, server_state_));
-  commands_map_["l"] = unique_ptr<Command>(new LCommand(tts_, server_state_));
+      unique_ptr<Command>(new TtsSayCommand());
+  commands_map_["l"] = unique_ptr<Command>(new LCommand());
   commands_map_["tts_pause"] =
-      unique_ptr<Command>(new TtsPauseCommand(tts_, server_state_));
+      unique_ptr<Command>(new TtsPauseCommand());
   commands_map_["tts_resume"] =
-      unique_ptr<Command>(new TtsResumeCommand(tts_, server_state_));
-  commands_map_["s"] = unique_ptr<Command>(new SCommand(tts_, server_state_));
-  commands_map_["q"] = unique_ptr<Command>(new QCommand(tts_, server_state_));
-  commands_map_["d"] = unique_ptr<Command>(new DCommand(tts_, server_state_));
+      unique_ptr<Command>(new TtsResumeCommand());
+  commands_map_["s"] = unique_ptr<Command>(new SCommand());
+  commands_map_["q"] = unique_ptr<Command>(new QCommand());
+  commands_map_["d"] = unique_ptr<Command>(new DCommand());
 }
 
 Command* CommandRegistry::GetCommand(const std::string& command_name) {
