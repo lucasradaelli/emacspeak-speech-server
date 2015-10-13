@@ -222,15 +222,21 @@ bool TTS::Synthesize() {
   }
 }
 
-bool TTS::AddText(const string& msg) {
+bool TTS::AddText(const string &msg) {
   if (eciAddText_(eci_handle_, msg.c_str())) {
-      return true;
-    } else {
-      return false;
-    }
+    return true;
+  } else {
+    return false;
+  }
 }
 
-bool TTS::Say(const string& msg) {
+const string TTS::GetPrefixString() const {
+  std::ostringstream prefix_string;
+  prefix_string << "`v1 `vs" << GetSpeechRate() << " ";
+  return prefix_string.str();
+}
+
+bool TTS::Output(const string &msg) {
   if (!AddText(msg)) {
     return false;
   }
@@ -240,15 +246,15 @@ bool TTS::Say(const string& msg) {
   return true;
 }
 
+bool TTS::Say(const string &msg) { return Output(GetPrefixString() + msg); }
 
 bool TTS::GenerateSilence(const int duration) {
   // The ECI library has a special code to insert silence during speech. We
-  // create a message of this form and simply Say() it.
+  // create a message of this form and simply Output() it.
   std::ostringstream msg;
   msg << "`p" << duration;
-  return Say(msg.str());
+  return Output(msg.str());
 }
-
 
 int TTS::PlayTTS(const int count) {
   alsa_player_->Play(count);
@@ -273,19 +279,18 @@ bool TTS::Synchronize() {
   }
 }
 
-
 bool TTS::Pause() {
-  if (eciPause_(eci_handle_, 1))  {
-      return true;
-    }
-    return false;
+  if (eciPause_(eci_handle_, 1)) {
+    return true;
+  }
+  return false;
 }
 
 bool TTS::Resume() {
-  if (eciPause_(eci_handle_, 0))  {
-      return true;
-    }
-    return false;
+  if (eciPause_(eci_handle_, 0)) {
+    return true;
+  }
+  return false;
 }
 
 bool TTS::Stop() {
@@ -298,11 +303,10 @@ bool TTS::Stop() {
 }
 
 string TTS::TTSVersion() {
-  std::unique_ptr<char[]> version( new char[20]);
+  std::unique_ptr<char[]> version(new char[20]);
   eciVersion_(version.get());
   return string(version.get());
 }
-
 
 string LangSwitcher::GetDefaultLanguageCode() {
   const char *a_default_lang = getenv("LANGUAGE");

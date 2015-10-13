@@ -5,9 +5,8 @@ using std::string;
 using std::unique_ptr;
 
 bool VersionCommand::Run(TTS* tts, ServerState* server_state) {
-  const string prefix = server_state->GetPrefixString();
   const string ttsversion = tts->TTSVersion();
-  const string msg = prefix + "viavoice " + ttsversion;
+  const string msg = "viavoice " + ttsversion;
   if (!tts->Say(msg)) {
     return false;
   }
@@ -15,17 +14,13 @@ bool VersionCommand::Run(TTS* tts, ServerState* server_state) {
 }
 
 bool TtsSayCommand::Run(TTS* tts, ServerState* server_state) {
-  const string prefix = server_state->GetPrefixString();
-  const string args = server_state->GetLastArgs();
-  const string msg = prefix + args;
-  if (!tts->Say(msg)) {
+  if (!tts->Say(server_state->GetLastArgs())) {
     return false;
   }
   return true;
 }
 
 bool LCommand::Run(TTS* tts, ServerState* server_state) {
-  const string prefix = server_state->GetPrefixString();
   const string args = server_state->GetLastArgs();
   if (args.size() != 1) {
     // It only speaks a single character.
@@ -35,7 +30,7 @@ bool LCommand::Run(TTS* tts, ServerState* server_state) {
   if (isalpha(args[0])) {
     letter_pitch = "`vb80 ";
   }
-  const string msg = prefix + letter_pitch + "`ts2 " + args + " `ts0";
+  const string msg = letter_pitch + "`ts2 " + args + " `ts0";
   if (!tts->Say(msg)) {
     return false;
   }
@@ -61,8 +56,7 @@ bool SCommand::Run(TTS* tts, ServerState* server_state) {
 }
 
 bool QCommand::Run(TTS* tts, ServerState* server_state) {
-  unique_ptr<Message> message(
-      new SpeechMessage(server_state->GetLastArgs()));
+  unique_ptr<Message> message(new SpeechMessage(server_state->GetLastArgs()));
   server_state->messages().push(std::move(message));
   return true;
 }
@@ -76,8 +70,7 @@ bool DCommand::Run(TTS* tts, ServerState* server_state) {
 }
 
 bool CCommand::Run(TTS* tts, ServerState* server_state) {
-  unique_ptr<Message> message(
-      new CodeMessage(server_state->GetLastArgs()));
+  unique_ptr<Message> message(new CodeMessage(server_state->GetLastArgs()));
   server_state->messages().push(std::move(message));
   return true;
 }
@@ -88,8 +81,7 @@ bool ShCommand::Run(TTS* tts, ServerState* server_state) {
     return false;
   }
 
-  unique_ptr<Message> message(
-      new SilenceMessage(duration));
+  unique_ptr<Message> message(new SilenceMessage(duration));
   server_state->messages().push(std::move(message));
   return true;
 }

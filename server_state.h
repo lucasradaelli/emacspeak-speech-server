@@ -7,25 +7,16 @@
 
 #include "messages.h"
 
-enum ServerStatus {
-  DATA_PROCESSED = 0,
-  COMMAND_PENDING = 1
-};
+enum ServerStatus { DATA_PROCESSED = 0, COMMAND_PENDING = 1 };
 
 class ServerState {
  public:
   ServerState();
   ~ServerState() = default;
 
-  int GetSpeechRate() const { return speech_rate_; }
-
-  void SetSpeechRate(const int speech_rate) { speech_rate_ = speech_rate; }
-
   std::string* GetMutableLastArgs() const { return last_args_.get(); }
 
   const std::string& GetLastArgs() const { return *last_args_.get(); }
-
-  const std::string GetPrefixString() const;
 
   ServerStatus GetServerStatus() const { return server_status_; }
 
@@ -38,7 +29,6 @@ class ServerState {
   void ClearMessageQueue();
 
  private:
-  int speech_rate_ = 50;
   std::queue<std::unique_ptr<Message>> messages_;
   std::string last_command_;
   ServerStatus server_status_;

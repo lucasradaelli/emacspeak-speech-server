@@ -29,47 +29,47 @@ class VersionCommand : public Command {
 class TtsSayCommand : public Command {
  public:
   TtsSayCommand() = default;
-    bool Run(TTS* tts, ServerState* server_state) override;
+  bool Run(TTS* tts, ServerState* server_state) override;
 };
 
 // Speakes immediately the given letter.
 class LCommand : public Command {
  public:
   LCommand() = default;
-    bool Run(TTS* tts, ServerState* server_state) override;
+  bool Run(TTS* tts, ServerState* server_state) override;
 };
 
 // Pauses the speech. The speech can be resumed by calling TtsResumeCommand.
 class TtsPauseCommand : public Command {
  public:
   TtsPauseCommand() = default;
-    bool Run(TTS* tts, ServerState* server_state) override;
+  bool Run(TTS* tts, ServerState* server_state) override;
 };
 
 // Resumes the speech previously paused.
 class TtsResumeCommand : public Command {
  public:
   TtsResumeCommand() = default;
-    bool Run(TTS* tts, ServerState* server_state) override;
+  bool Run(TTS* tts, ServerState* server_state) override;
 };
 
 // Stops the speech.
 class SCommand : public Command {
  public:
   SCommand() = default;
-    bool Run(TTS* tts, ServerState* server_state) override;
+  bool Run(TTS* tts, ServerState* server_state) override;
 };
 
 class QCommand : public Command {
  public:
   QCommand() = default;
-    bool Run(TTS* tts, ServerState* server_state) override;
+  bool Run(TTS* tts, ServerState* server_state) override;
 };
 
 class DCommand : public Command {
  public:
   DCommand() = default;
-    bool Run(TTS* tts, ServerState* server_state) override;
+  bool Run(TTS* tts, ServerState* server_state) override;
 };
 
 // Queues a code to be sent to the speech engine. No text formatting is applied
@@ -77,14 +77,14 @@ class DCommand : public Command {
 class CCommand : public Command {
  public:
   CCommand() = default;
-    bool Run(TTS* tts, ServerState* server_state) override;
+  bool Run(TTS* tts, ServerState* server_state) override;
 };
 
 // Queues a message of type silence.
 class ShCommand : public Command {
  public:
   ShCommand() = default;
-    bool Run(TTS* tts, ServerState* server_state) override;
+  bool Run(TTS* tts, ServerState* server_state) override;
 };
 
 #endif  // COMMANDS_H_
