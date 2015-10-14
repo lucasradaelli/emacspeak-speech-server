@@ -85,3 +85,13 @@ bool ShCommand::Run(TTS* tts, ServerState* server_state) {
   server_state->messages().push(std::move(message));
   return true;
 }
+
+bool TtsSetSpeechRateCommand::Run(TTS* tts, ServerState* server_state) {
+  int speech_rate = atoi(server_state->GetLastArgs().c_str());
+  if (speech_rate <= 0) {
+    return false;
+  }
+
+  tts->SetSpeechRate(speech_rate);
+  return true;
+}

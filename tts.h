@@ -99,6 +99,8 @@ class TTS {
 
   int GetSpeechRate() const { return speech_rate_; }
 
+  void SetSpeechRate(const int speech_rate) { speech_rate_ = speech_rate; }
+
   const std::string GetPrefixString() const;
 
  private:

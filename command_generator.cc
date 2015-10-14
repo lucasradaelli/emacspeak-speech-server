@@ -8,20 +8,18 @@
 using std::unique_ptr;
 
 CommandRegistry::CommandRegistry() {
-  commands_map_["version"] =
-      unique_ptr<Command>(new VersionCommand());
-  commands_map_["tts_say"] =
-      unique_ptr<Command>(new TtsSayCommand());
+  commands_map_["version"] = unique_ptr<Command>(new VersionCommand());
+  commands_map_["tts_say"] = unique_ptr<Command>(new TtsSayCommand());
   commands_map_["l"] = unique_ptr<Command>(new LCommand());
-  commands_map_["tts_pause"] =
-      unique_ptr<Command>(new TtsPauseCommand());
-  commands_map_["tts_resume"] =
-      unique_ptr<Command>(new TtsResumeCommand());
+  commands_map_["tts_pause"] = unique_ptr<Command>(new TtsPauseCommand());
+  commands_map_["tts_resume"] = unique_ptr<Command>(new TtsResumeCommand());
   commands_map_["s"] = unique_ptr<Command>(new SCommand());
   commands_map_["q"] = unique_ptr<Command>(new QCommand());
   commands_map_["d"] = unique_ptr<Command>(new DCommand());
   commands_map_["c"] = unique_ptr<Command>(new CCommand());
   commands_map_["sh"] = unique_ptr<Command>(new ShCommand());
+  commands_map_["tts_set_speech_rate"] =
+      unique_ptr<Command>(new TtsSetSpeechRateCommand());
 }
 
 Command* CommandRegistry::GetCommand(const std::string& command_name) {

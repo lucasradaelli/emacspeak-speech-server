@@ -15,7 +15,6 @@ class CommandRegistry {
   Command* GetCommand(const std::string& command_name);
 
  private:
-
   std::unordered_map<std::string, std::unique_ptr<Command>> commands_map_;
 };
 
