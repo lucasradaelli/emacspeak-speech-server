@@ -27,7 +27,7 @@ bool LCommand::Run(TTS* tts, ServerState* server_state) {
     return false;
   }
   string letter_pitch;
-  if (isalpha(args[0])) {
+  if (isupper(args[0])) {
     letter_pitch = "`vb80 ";
   }
   const string msg = letter_pitch + "`ts2 " + args + " `ts0";
