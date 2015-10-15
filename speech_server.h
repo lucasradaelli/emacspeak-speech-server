@@ -14,8 +14,6 @@ class SpeechServer {
   }
   ~SpeechServer() = default;
 
-  ServerStatus Service();
-
   int MainLoop();
 
   std::tuple<std::string, std::string> ProcessInput();

@@ -59,24 +59,6 @@ string GetToken(char** buffer) {
 
 }  // namespace
 
-ServerStatus SpeechServer::Service() {
-  bool is_speaking = tts_->IsSpeaking();
-  pollfd fds[1];
-  fds[0].fd = fileno(stdin);
-  fds[0].events = POLLIN;
-
-  while (is_speaking) {
-    int rc = poll(fds, 1, 5);
-    if (rc) {
-      cout << "there is data to read";
-      break;
-    } else {
-      is_speaking = tts_->IsSpeaking();
-    }
-  }
-  return !is_speaking ? DATA_PROCESSED : COMMAND_PENDING;
-}
-
 int SpeechServer::MainLoop() {
   for (;;) {
     // Always expect input from the stdin descriptor, to process commands.
