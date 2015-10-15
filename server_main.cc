@@ -1,8 +1,4 @@
-#include <iostream>
-#include <cstdio>
-#include <cctype>
-
-#include "command_generator.h"
+#include "alsa_player.h"
 #include "tts.h"
 #include "speech_server.h"
 
