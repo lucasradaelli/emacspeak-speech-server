@@ -2,20 +2,12 @@
 #define TTS_H_
 
 #include "alsa_player.h"
-#include "eci.h"
+#include "eci-c++.h"
 
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-struct langInfo {
-  enum ECILanguageDialect lang;
-  const char* code;
-  const char* encoding;
-  const char* id;
-  const char* label;
-};
 
 class LangSwitcher;
 
@@ -72,8 +64,6 @@ class TTS {
 
   bool GenerateSilence(const int duration);
 
-  int PlayTTS(const int count);
-
   bool IsSpeaking();
 
   bool Pause();
@@ -81,8 +71,6 @@ class TTS {
   bool Resume();
 
   bool Stop();
-
-  void SetLastReply(const long lparam) { lparam_ = lparam; }
 
   std::string TTSVersion();
 
@@ -96,16 +84,14 @@ class TTS {
   const std::string GetPrefixString() const;
 
  private:
-  void* eci_handle_;
-  AlsaPlayer* alsa_player_;
   std::unique_ptr<LangSwitcher> lang_switcher_;
+  std::unique_ptr<ECI> eci_;
+  AlsaPlayer* alsa_player_;
 
   int speech_rate_ = 50;
 
   // Is true whenever there is data to send to the sound output.
   bool speaking_ = false;
-
-  long lparam_;
 };
 
 class TTSError : public std::runtime_error {
@@ -115,17 +101,25 @@ class TTSError : public std::runtime_error {
 
 class LangSwitcher {
  public:
-  LangSwitcher(const ECILanguageDialect* a_languages, const int n_languages)
-      : a_languages_(a_languages), n_languages_(n_languages) {}
+  LangSwitcher(std::vector<ECILanguageDialect> languages)
+      : languages_(languages) {}
   ~LangSwitcher() = default;
+
   ECILanguageDialect InitLanguage();
 
  private:
+  struct langInfo {
+    enum ECILanguageDialect lang;
+    const char* code;
+    const char* encoding;
+    const char* id;
+    const char* label;
+  };
+
   std::string GetDefaultLanguageCode();
   bool GetValidLanguages(std::vector<int>* available_languages_index);
 
-  const ECILanguageDialect* a_languages_;
-  int n_languages_;
+  std::vector<ECILanguageDialect> languages_;
 
   std::vector<langInfo> the_languages_{
       {NODEFINEDCODESET, NULL, NULL, NULL, NULL},

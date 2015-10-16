@@ -2,9 +2,11 @@
 CC=g++
 CXXFLAGS+= -g -std=c++11 -m32 -Wall
 LIBS+= -ldl -lasound
-OBJECTS= speech_server.o server_state.o  command_generator.o commands.o tts.o alsa_player.o messages.o
+OBJECTS= speech_server.o server_state.o  command_generator.o commands.o eci-c++.o tts.o alsa_player.o messages.o
 
-main: server_main.cc  $(OBJECTS)
+main: speech_server
+
+speech_server: server_main.cc  $(OBJECTS)
 	$(CC) -o speech_server server_main.cc $(OBJECTS) $(CXXFLAGS) $(LIBS)
 
 speech_server.o: speech_server.cc speech_server.h
@@ -22,6 +24,9 @@ commands.o: commands.cc commands.h
 alsa_player.o: alsa_player.cc alsa_player.h
 	$(CC) -c -o alsa_player.o alsa_player.cc  $(CXXFLAGS)
 
+eci-c++.o: eci-c++.cc eci-c++.h
+	$(CC) -c -o eci-c++.o eci-c++.cc   $(CXXFLAGS)
+
 tts.o: tts.cc tts.h
 	$(CC) -c -o tts.o tts.cc   $(CXXFLAGS)
 
@@ -29,4 +34,4 @@ messages.o: messages.cc messages.h
 	$(CC) -c -o messages.o messages.cc   $(CXXFLAGS)
 
 clean:
-	rm *.o speech_server
+	rm -f *.o speech_server
