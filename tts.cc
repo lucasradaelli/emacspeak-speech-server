@@ -37,13 +37,15 @@ void (*eciRegisterCallback_)(void *, ECICallback, void *);
 
 }  // namespace
 
+constexpr char TTS::kEciLibraryName[];
+
 bool TTS::InitECI() {
   void *eciLib;
   // < configure shared library symbols
 
-  eciLib = dlopen(ECILIBRARYNAME, RTLD_LAZY);
+  eciLib = dlopen(kEciLibraryName, RTLD_LAZY);
   if (eciLib == NULL) {
-    std::cerr << "Could not load   " << ECILIBRARYNAME << "\n";
+    std::cerr << "Could not load " << kEciLibraryName << "\n";
     return false;
   }
 
@@ -151,7 +153,7 @@ bool TTS::InitECI() {
   }
 
   if (!okay) {
-    std::cerr << "Failed to  load the lib\n";
+    std::cerr << "Failed to load the lib\n";
     return false;
   }
 
@@ -160,22 +162,27 @@ bool TTS::InitECI() {
 
 TTS::TTS(AlsaPlayer *alsa_player, const Options &options)
     : alsa_player_(alsa_player) {
-  int rc;
-  ECILanguageDialect a_languages[LANG_INFO_MAX];
-  int n_languages = LANG_INFO_MAX;
-  eciGetAvailableLanguages_(a_languages, &n_languages);
+  int n_languages = 0;
+  if (eciGetAvailableLanguages_(nullptr, &n_languages) != 0) {
+    throw TTSError("Failed to get available languages from ECI.");
+  }
+
+  ECILanguageDialect a_languages[n_languages];
+  if (eciGetAvailableLanguages_(a_languages, &n_languages) != 0) {
+    throw TTSError("Failed to get available languages from ECI.");
+  }
 
   lang_switcher_.reset(new LangSwitcher(a_languages, n_languages));
 
   ECILanguageDialect a_default_language = lang_switcher_->InitLanguage();
 
   if (a_default_language == NODEFINEDCODESET) {
-    throw TTSError("No languages found\n");
+    throw TTSError("No languages found.");
   }
 
   eci_handle_ = eciNewEx_(a_default_language);
   if (eci_handle_ == nullptr) {
-    throw TTSError("Could not open text-to-speech engine.\n");
+    throw TTSError("Could not open text-to-speech engine.");
   }
 
   // Initialize TTS
@@ -183,7 +190,7 @@ TTS::TTS(AlsaPlayer *alsa_player, const Options &options)
       (eciSetParam_(eci_handle_, eciSynthMode, 1) == -1) ||
       (eciSetParam_(eci_handle_, eciSampleRate, options.sample_rate) == -1)) {
     eciDelete_(eci_handle_);
-    throw TTSError("Could not initialized tts");
+    throw TTSError("Could not initialized TTS.");
   }
 
   eciRegisterCallback_(
@@ -200,18 +207,22 @@ TTS::TTS(AlsaPlayer *alsa_player, const Options &options)
       this);
 
   // Set output to bufferl.
-  rc = eciSynchronize_(eci_handle_);
+  int rc = eciSynchronize_(eci_handle_);
   if (!rc) {
-    throw TTSError("Error resetting TTS engine.\n");
+    throw TTSError("Error resetting TTS engine.");
   }
+
   rc = eciSetOutputBuffer_(eci_handle_, alsa_player_->period_size(),
                            reinterpret_cast<short *>(alsa_player_->buffer()));
   if (!rc) {
-    throw TTSError("Error setting output buffer.\n");
+    throw TTSError("Error setting output buffer.");
   }
 }
 
-TTS::~TTS() { eciDelete_(eci_handle_); }
+TTS::~TTS() {
+  // Cleanup.
+  eciDelete_(eci_handle_);
+}
 
 bool TTS::Synthesize() {
   if (eciSynthesize_(eci_handle_)) {
@@ -246,7 +257,10 @@ bool TTS::Output(const string &msg) {
   return true;
 }
 
-bool TTS::Say(const string &msg) { return Output(GetPrefixString() + msg); }
+bool TTS::Say(const string &msg) {
+  //.
+  return Output(GetPrefixString() + msg);
+}
 
 bool TTS::GenerateSilence(const int duration) {
   // The ECI library has a special code to insert silence during speech. We
@@ -266,15 +280,6 @@ bool TTS::IsSpeaking() {
     return true;
   } else {
     speaking_ = false;
-    return false;
-  }
-}
-
-bool TTS::Synchronize() {
-  int rc = eciSynchronize_(eci_handle_);
-  if (rc) {
-    return true;
-  } else {
     return false;
   }
 }
@@ -303,9 +308,9 @@ bool TTS::Stop() {
 }
 
 string TTS::TTSVersion() {
-  std::unique_ptr<char[]> version(new char[20]);
-  eciVersion_(version.get());
-  return string(version.get());
+  char version[20];
+  eciVersion_(version);
+  return version;
 }
 
 string LangSwitcher::GetDefaultLanguageCode() {

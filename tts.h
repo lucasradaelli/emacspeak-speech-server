@@ -9,12 +9,6 @@
 #include <string>
 #include <vector>
 
-#define PACKAGENAME "tts"
-#define PACKAGEVERSION "1.0"
-#define ECILIBRARYNAME "libibmeci.so"
-
-enum { ANNOTATION_MAX_SIZE = 10, LANG_INFO_MAX = 22 };
-
 struct langInfo {
   enum ECILanguageDialect lang;
   const char* code;
@@ -22,8 +16,6 @@ struct langInfo {
   const char* id;
   const char* label;
 };
-
-enum { LANGUAGE_MAX_LABEL = 30 };  // max size of the label field
 
 class LangSwitcher;
 
@@ -36,6 +28,8 @@ class TTS {
     // todo: add enum for sample rates.
     int sample_rate = 1;
   };
+
+  static constexpr char kEciLibraryName[] = "libibmeci.so";
 
   // This class generates speech by calling methods to add processed /
   // non-processed text, then a call to Synthesize to generate the pcm
@@ -81,8 +75,6 @@ class TTS {
   int PlayTTS(const int count);
 
   bool IsSpeaking();
-
-  bool Synchronize();
 
   bool Pause();
 
