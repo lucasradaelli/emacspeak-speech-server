@@ -19,31 +19,37 @@ class ECI {
   static void Init(const char* library_path);
 
   ECI();
-  ECI(ECILanguageDialect value);
+  ECI(ECILanguageDialect language);
   virtual ~ECI();
 
   // System control.
-  // TODO: Missing: eciDeactivateFilter, eciSpeakText, eciSpeakTextEx.
   void Reset();
+  static void SpeakText(const std::string& text, bool annotations);
+  static void SpeakTextEx(const std::string& text, bool annotations,
+                          ECILanguageDialect language);
 
   // Synthesis control.
-  // TODO: Missing: eciGeneratePhonemes, eciGetIndex, eciInsertIndex,
-  //       eciSynthesizeFile.
   void AddText(const std::string& text);
   void ClearInput();
+  void GeneratePhonemes(int size, void* buffer);
+  int GetIndex();
+  void InsertIndex(int index);
   void Pause(bool pause);
   bool Speaking();
   void Stop();
   void Synchronize();
   void Synthesize();
+  void SynthesizeFile(const std::string& filename);
 
   // Output control.
-  // TODO: Missing: eciSetOutputFilename.
   void SetOutputBuffer(int size, short* buffer);
   void SetOutputDevice(int num);
+  void eciSetOutputFilename(const std::string& filename);
 
   // Speech environment parameter selection.
-  // TODO: Missing: eciGetDefaultParam, eciGetParam, eciSetDefaultParam.
+  static int GetDefaultParam(ECIParam parameter);
+  static int SetDefaultParam(ECIParam parameter, int value);
+  int GetParam(ECIParam parameter);
   int SetParam(ECIParam parameter, int value);
 
   // VoiceParameterControl.
@@ -54,9 +60,10 @@ class ECI {
   // TODO: Missing: (everything).
 
   // Diagnostics.
-  // TODO: Missing: eciClearErrors, eciTestPhrase.
   int ProgStatus();
   std::string ErrorMessage();
+  void ClearErrors();
+  void TestPhrase();
   static std::string Version();
 
   // Callback.
