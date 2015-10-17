@@ -17,8 +17,8 @@ bool TTS::InitECI() {
   return true;
 }
 
-TTS::TTS(AlsaPlayer *alsa_player, const Options &options)
-    : alsa_player_(alsa_player) {
+TTS::TTS(AudioManager* audio, const Options &options)
+    : audio_(audio) {
   lang_switcher_.reset(new LangSwitcher(ECI::GetAvailableLanguages()));
 
   ECILanguageDialect a_default_language = lang_switcher_->InitLanguage();
@@ -33,27 +33,34 @@ TTS::TTS(AlsaPlayer *alsa_player, const Options &options)
   eci_->SetParam(eciSynthMode, 1);
   eci_->SetParam(eciSampleRate, options.sample_rate);
 
-  eci_->SetCallback(eciWaveformBuffer, [&](long frames) {
-    alsa_player_->Play(frames);
+  eci_->SetCallback(eciWaveformBuffer, [=](long frames) {
+    audio_->player()->Play(frames);
     return eciDataProcessed;
   });
-
-  // Set output to buffer.
-  eci_->Synchronize();
-  eci_->SetOutputBuffer(alsa_player_->period_size(),
-                        reinterpret_cast<short *>(alsa_player_->buffer()));
+  eci_->SetOutputBuffer(audio_->player()->period_size(),
+                        reinterpret_cast<short*>(audio_->player()->buffer()));
 }
 
 TTS::~TTS() {}
 
-bool TTS::Synthesize() {
-  eci_->Synthesize();
-  speaking_ = true;
+bool TTS::AddText(const string &msg) {
+  pending_texts_.push_back(msg);
   return true;
 }
 
-bool TTS::AddText(const string &msg) {
-  eci_->AddText(msg.c_str());
+bool TTS::Synthesize() {
+  std::vector<std::string> texts;
+  std::swap(pending_texts_, texts);
+
+  std::unique_ptr<SpeechTask> task(new SpeechTask(eci_.get()));
+  task->Setup([=](ECI* eci) {
+    for (const auto& text : texts) {
+      eci->AddText(text);
+    }
+    eci->Synthesize();
+  });
+
+  audio_->Push(std::move(task));
   return true;
 }
 
@@ -81,28 +88,21 @@ bool TTS::GenerateSilence(const int duration) {
   return Output(msg.str());
 }
 
-bool TTS::IsSpeaking() {
-  if (eci_->Speaking()) {
-    return true;
-  } else {
-    speaking_ = false;
-    return false;
-  }
-}
-
 bool TTS::Pause() {
   eci_->Pause(true);
+  audio_->player()->Pause();
   return true;
 }
 
 bool TTS::Resume() {
   eci_->Pause(false);
+  audio_->player()->Resume();
   return true;
 }
 
 bool TTS::Stop() {
   eci_->Stop();
-  alsa_player_->Interrupt();
+  audio_->player()->Interrupt();
   usleep(10);
   return true;
 }

@@ -7,6 +7,8 @@
 #include <poll.h>
 #include <unistd.h>
 
+#include "audio_manager.h"
+
 using std::cin;
 using std::cout;
 using std::string;
@@ -66,19 +68,35 @@ int SpeechServer::MainLoop() {
     fds[0].fd = STDIN_FILENO;
     fds[0].events = POLLIN | POLLERR;
 
-    if (tts_->speaking()) {
-      auto alsa_fds = tts_->player()->GetPollDescriptors();
+    // If there is an audio task in the queue, expect for sound output buffer
+    // availability.
+    const bool audio_output_pending = audio_->pending();
+
+    if (audio_output_pending) {
+      auto alsa_fds = audio_->player()->GetPollDescriptors();
       std::copy(std::make_move_iterator(alsa_fds.begin()),
                 std::make_move_iterator(alsa_fds.end()),
                 std::back_inserter(fds));
     }
 
-    int r = poll(fds.data(), fds.size(), -1);
-    if (r < 0) {
-      if (errno == EINTR) continue;
+    // Wait for events.
+    int descriptors_ready = poll(fds.data(), fds.size(), -1);
+    if (descriptors_ready < 0) {
+      if (errno == EINTR) {
+        // Interrupted system call, try again.
+        continue;
+      }
       throw;  // TODO: make a proper exception
     }
 
+    // If there was any audio tasks enqueued and the sound output is ready,
+    // run those tasks now.
+    if (audio_output_pending &&
+        audio_->player()->GetPollEvents(fds.data() + 1, fds.size() - 1)) {
+      audio_->Run();
+    }
+
+    // If there was an input event, possibly process a server command.
     if (fds[0].fd == STDIN_FILENO && fds[0].revents != 0) {
       string command_name;
       std::tie(command_name, *server_state_.GetMutableLastArgs()) =
@@ -93,11 +111,6 @@ int SpeechServer::MainLoop() {
         continue;
       }
       command->Run(tts_, &server_state_);
-    }
-
-    if (tts_->speaking() &&
-        tts_->player()->GetPollEvents(fds.data() + 1, fds.size() - 1)) {
-      tts_->IsSpeaking();
     }
   }
 

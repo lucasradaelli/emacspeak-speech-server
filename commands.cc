@@ -1,5 +1,7 @@
 #include "commands.h"
+
 #include <iostream>
+#include <memory>
 
 using std::string;
 using std::unique_ptr;
@@ -38,12 +40,12 @@ bool LCommand::Run(TTS* tts, ServerState* server_state) {
 }
 
 bool TtsPauseCommand::Run(TTS* tts, ServerState* server_state) {
-  tts->player()->Pause();
+  tts->Pause();
   return true;
 }
 
 bool TtsResumeCommand::Run(TTS* tts, ServerState* server_state) {
-  tts->player()->Resume();
+  tts->Resume();
   return true;
 }
 

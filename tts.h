@@ -1,7 +1,8 @@
 #ifndef TTS_H_
 #define TTS_H_
 
-#include "alsa_player.h"
+#include "audio_manager.h"
+#include "audio_tasks.h"
 #include "eci-c++.h"
 
 #include <memory>
@@ -32,7 +33,7 @@ class TTS {
   // to really play the content. This design allows the programs wishing to use
   // this class to be non-blocking, e.g. can perform other actions between calls
   // to IsSpeaking().
-  TTS(AlsaPlayer* alsa_player, const Options& options = Options());
+  TTS(AudioManager* audio, const Options& options = Options());
   ~TTS();
 
   // Loads dynamically the IBM Text-to-Speech library into memory. You must call
@@ -41,14 +42,14 @@ class TTS {
   // otherwise.
   static bool InitECI();
 
-  // Generates the internal pcm representation of the speech containing the text
-  // previously added with calls to AddText().
-  bool Synthesize();
-
   // Adds the given text to be an output. The texts can be appended with
   // subsequent calls to this function. The final output will only be produced
   // when a call to Synthesize() is made.
   bool AddText(const std::string& msg);
+
+  // Generates the internal pcm representation of the speech containing the text
+  // previously added with calls to AddText().
+  bool Synthesize();
 
   // Helper method to generate the internal pcm representation of the speech,
   // without any processing on the text. This would be the same as AddText(...),
@@ -64,8 +65,6 @@ class TTS {
 
   bool GenerateSilence(const int duration);
 
-  bool IsSpeaking();
-
   bool Pause();
 
   bool Resume();
@@ -73,9 +72,6 @@ class TTS {
   bool Stop();
 
   std::string TTSVersion();
-
-  AlsaPlayer* player() const { return alsa_player_; }
-  bool speaking() const { return speaking_; }
 
   int GetSpeechRate() const { return speech_rate_; }
 
@@ -86,12 +82,12 @@ class TTS {
  private:
   std::unique_ptr<LangSwitcher> lang_switcher_;
   std::unique_ptr<ECI> eci_;
-  AlsaPlayer* alsa_player_;
+  AudioManager* audio_;
+
+  std::vector<std::string> pending_texts_;
 
   int speech_rate_ = 50;
 
-  // Is true whenever there is data to send to the sound output.
-  bool speaking_ = false;
 };
 
 class TTSError : public std::runtime_error {

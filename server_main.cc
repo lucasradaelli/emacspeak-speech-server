@@ -1,12 +1,14 @@
 #include "alsa_player.h"
+#include "audio_manager.h"
 #include "tts.h"
 #include "speech_server.h"
 
 int main(int argc, char** argv) {
   TTS::InitECI();
-  AlsaPlayer alsa_player;
-  TTS tts(&alsa_player);
 
-  SpeechServer speech_server(&tts);
+  AudioManager audio(std::unique_ptr<AlsaPlayer>(new AlsaPlayer));
+  TTS tts(&audio);
+
+  SpeechServer speech_server(&audio, &tts);
   speech_server.MainLoop();
 }
