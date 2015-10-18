@@ -1,9 +1,6 @@
 #include "tts.h"
 #include "alsa_player.h"
 
-#include <sys/time.h>
-#include <dlfcn.h>
-#include <alloca.h>
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
@@ -13,221 +10,58 @@
 using std::string;
 using std::vector;
 
-namespace {
-
-void (*eciVersion_)(char *);
-void *(*eciNewEx_)(ECILanguageDialect);
-int (*eciGetAvailableLanguages_)(ECILanguageDialect *, int *);
-void (*eciDelete_)(void *);
-int (*eciReset_)(void *);
-int (*eciStop_)(void *);
-int (*eciClearInput_)(void *);
-int (*eciPause_)(void *, int);
-int (*eciSynthesize_)(void *);
-int (*eciSynchronize_)(void *);
-int (*eciSpeaking_)(void *);
-int (*eciAddText_)(void *, const char *);
-int (*eciInsertIndex_)(void *, int);
-int (*eciSetParam_)(void *, int, int);
-int (*eciGetVoiceParam_)(void *, int, int);
-int (*eciSetVoiceParam_)(void *, int, int, int);
-int (*eciSetOutputBuffer_)(void *, int, short *);
-int (*eciSetOutputDevice_)(void *, int);
-void (*eciRegisterCallback_)(void *, ECICallback, void *);
-
-}  // namespace
+constexpr char TTS::kEciLibraryName[];
 
 bool TTS::InitECI() {
-  void *eciLib;
-  // < configure shared library symbols
-
-  eciLib = dlopen(ECILIBRARYNAME, RTLD_LAZY);
-  if (eciLib == NULL) {
-    std::cerr << "Could not load   " << ECILIBRARYNAME << "\n";
-    return false;
-  }
-
-  eciVersion_ = (void (*)(char *))dlsym(eciLib, "eciVersion");
-  eciGetAvailableLanguages_ = (int (*)(ECILanguageDialect *, int *))dlsym(
-      eciLib, "eciGetAvailableLanguages");
-  eciNewEx_ = (void *(*)(ECILanguageDialect))dlsym(eciLib, "eciNewEx");
-  eciDelete_ = (void (*)(void *))dlsym(eciLib, "eciDelete");
-  eciReset_ = (int (*)(void *))dlsym(eciLib, "eciReset");
-  eciStop_ = (int (*)(void *))dlsym(eciLib, "eciStop");
-  eciClearInput_ = (int (*)(void *))dlsym(eciLib, "eciClearInput");
-  eciPause_ = (int (*)(void *, int))dlsym(eciLib, "eciPause");
-  eciSynthesize_ = (int (*)(void *))dlsym(eciLib, "eciSynthesize");
-  eciSynchronize_ = (int (*)(void *))dlsym(eciLib, "eciSynchronize");
-  eciSpeaking_ = (int (*)(void *))dlsym(eciLib, "eciSpeaking");
-  eciInsertIndex_ = (int (*)(void *, int))dlsym(eciLib, "eciInsertIndex");
-  eciAddText_ = (int (*)(void *, const char *))dlsym(eciLib, "eciAddText");
-  eciSetParam_ = (int (*)(void *, int, int))dlsym(eciLib, "eciSetParam");
-  eciGetVoiceParam_ =
-      (int (*)(void *, int, int))dlsym(eciLib, "eciGetVoiceParam");
-  eciSetVoiceParam_ =
-      (int (*)(void *, int, int, int))dlsym(eciLib, "eciSetVoiceParam");
-  eciRegisterCallback_ = (void (*)(void *, ECICallback, void *))dlsym(
-      eciLib, "eciRegisterCallback");
-  eciSetOutputBuffer_ =
-      (int (*)(void *, int, short *))dlsym(eciLib, "eciSetOutputBuffer");
-  eciSetOutputDevice_ =
-      (int (*)(void *, int))dlsym(eciLib, "eciSetOutputDevice");
-
-  // >
-  // < check for needed symbols
-
-  int okay = 1;
-  if (!eciNewEx_) {
-    okay = 0;
-    std::cerr << "eciNewEx undef\n";
-  }
-  if (!eciDelete_) {
-    okay = 0;
-    std::cerr << "eciDelete undef\n";
-  }
-  if (!eciReset_) {
-    okay = 0;
-    std::cerr << "eciReset undef\n";
-  }
-  if (!eciStop_) {
-    okay = 0;
-    std::cerr << "eciStop undef\n";
-  }
-  if (!eciClearInput_) {
-    okay = 0;
-    std::cerr << "eciClearInput undef\n";
-  }
-  if (!eciPause_) {
-    okay = 0;
-    std::cerr << "eciPause undef\n";
-  }
-  if (!eciSynthesize_) {
-    okay = 0;
-    std::cerr << "eciSynthesize undef\n";
-  }
-  if (!eciSpeaking_) {
-    okay = 0;
-    std::cerr << "eciSpeaking undef\n";
-  }
-  if (!eciInsertIndex_) {
-    okay = 0;
-    std::cerr << "eciInsertIndex undef\n";
-  }
-  if (!eciAddText_) {
-    okay = 0;
-    std::cerr << "eciAddText undef\n";
-  }
-  if (!eciSetParam_) {
-    okay = 0;
-    std::cerr << "eciSetParam undef\n";
-  }
-  if (!eciSetParam_) {
-    okay = 0;
-    std::cerr << "eciSetParam undef\n";
-  }
-  if (!eciGetVoiceParam_) {
-    okay = 0;
-    std::cerr << "eciGetVoiceParam undef\n";
-  }
-  if (!eciSetVoiceParam_) {
-    okay = 0;
-    std::cerr << "eciSetVoiceParam undef\n";
-  }
-  if (!eciRegisterCallback_) {
-    okay = 0;
-    std::cerr << "eciRegisterCallback undef\n";
-  }
-  if (!eciSetOutputBuffer_) {
-    okay = 0;
-    std::cerr << "eciSetOutputBuffer undef\n";
-  }
-  if (!eciSetOutputDevice_) {
-    okay = 0;
-    std::cerr << "eciSetOutputDevice undef\n";
-  }
-  if (!eciGetAvailableLanguages_) {
-    okay = 0;
-    std::cerr << "eciGetAvailableLanguages undef\n";
-  }
-
-  if (!okay) {
-    std::cerr << "Failed to  load the lib\n";
-    return false;
-  }
-
+  ECI::Init(kEciLibraryName);
   return true;
 }
 
-TTS::TTS(AlsaPlayer *alsa_player, const Options &options)
-    : alsa_player_(alsa_player) {
-  int rc;
-  ECILanguageDialect a_languages[LANG_INFO_MAX];
-  int n_languages = LANG_INFO_MAX;
-  eciGetAvailableLanguages_(a_languages, &n_languages);
-
-  lang_switcher_.reset(new LangSwitcher(a_languages, n_languages));
+TTS::TTS(AudioManager* audio, const Options &options)
+    : audio_(audio) {
+  lang_switcher_.reset(new LangSwitcher(ECI::GetAvailableLanguages()));
 
   ECILanguageDialect a_default_language = lang_switcher_->InitLanguage();
-
   if (a_default_language == NODEFINEDCODESET) {
-    throw TTSError("No languages found\n");
+    throw TTSError("No languages found.");
   }
 
-  eci_handle_ = eciNewEx_(a_default_language);
-  if (eci_handle_ == nullptr) {
-    throw TTSError("Could not open text-to-speech engine.\n");
-  }
+  eci_.reset(new ECI(a_default_language));
 
-  // Initialize TTS
-  if ((eciSetParam_(eci_handle_, eciInputType, 1) == -1) ||
-      (eciSetParam_(eci_handle_, eciSynthMode, 1) == -1) ||
-      (eciSetParam_(eci_handle_, eciSampleRate, options.sample_rate) == -1)) {
-    eciDelete_(eci_handle_);
-    throw TTSError("Could not initialized tts");
-  }
+  // Initialize TTS.
+  eci_->SetParam(eciInputType, 1);
+  eci_->SetParam(eciSynthMode, 1);
+  eci_->SetParam(eciSampleRate, options.sample_rate);
 
-  eciRegisterCallback_(
-      eci_handle_,
-      +[](void *eci_handle, ECIMessage msg, long lparam, void *data) {
-        TTS *tts = static_cast<TTS *>(data);
-        if (msg == eciIndexReply) {
-          tts->SetLastReply(lparam);
-        } else if ((msg == eciWaveformBuffer) && (lparam > 0)) {
-          tts->PlayTTS(lparam);
-        }
-        return eciDataProcessed;
-      },
-      this);
-
-  // Set output to bufferl.
-  rc = eciSynchronize_(eci_handle_);
-  if (!rc) {
-    throw TTSError("Error resetting TTS engine.\n");
-  }
-  rc = eciSetOutputBuffer_(eci_handle_, alsa_player_->period_size(),
-                           reinterpret_cast<short *>(alsa_player_->buffer()));
-  if (!rc) {
-    throw TTSError("Error setting output buffer.\n");
-  }
+  eci_->SetCallback(eciWaveformBuffer, [=](long frames) {
+    audio_->player()->Play(frames);
+    return eciDataProcessed;
+  });
+  eci_->SetOutputBuffer(audio_->player()->period_size(),
+                        reinterpret_cast<short*>(audio_->player()->buffer()));
 }
 
-TTS::~TTS() { eciDelete_(eci_handle_); }
-
-bool TTS::Synthesize() {
-  if (eciSynthesize_(eci_handle_)) {
-    speaking_ = true;
-    return true;
-  } else {
-    return false;
-  }
-}
+TTS::~TTS() {}
 
 bool TTS::AddText(const string &msg) {
-  if (eciAddText_(eci_handle_, msg.c_str())) {
-    return true;
-  } else {
-    return false;
-  }
+  pending_texts_.push_back(msg);
+  return true;
+}
+
+bool TTS::Synthesize() {
+  std::vector<std::string> texts;
+  std::swap(pending_texts_, texts);
+
+  std::unique_ptr<SpeechTask> task(new SpeechTask(eci_.get()));
+  task->Setup([=](ECI* eci) {
+    for (const auto& text : texts) {
+      eci->AddText(text);
+    }
+    eci->Synthesize();
+  });
+
+  audio_->Push(std::move(task));
+  return true;
 }
 
 const string TTS::GetPrefixString() const {
@@ -237,16 +71,14 @@ const string TTS::GetPrefixString() const {
 }
 
 bool TTS::Output(const string &msg) {
-  if (!AddText(msg)) {
-    return false;
-  }
-  if (!Synthesize()) {
-    return false;
-  }
+  AddText(msg);
+  Synthesize();
   return true;
 }
 
-bool TTS::Say(const string &msg) { return Output(GetPrefixString() + msg); }
+bool TTS::Say(const string &msg) {
+  return Output(GetPrefixString() + msg);
+}
 
 bool TTS::GenerateSilence(const int duration) {
   // The ECI library has a special code to insert silence during speech. We
@@ -256,63 +88,34 @@ bool TTS::GenerateSilence(const int duration) {
   return Output(msg.str());
 }
 
-int TTS::PlayTTS(const int count) {
-  alsa_player_->Play(count);
-  return eciDataProcessed;
-}
-
-bool TTS::IsSpeaking() {
-  if (eciSpeaking_(eci_handle_)) {
-    return true;
-  } else {
-    speaking_ = false;
-    return false;
-  }
-}
-
-bool TTS::Synchronize() {
-  int rc = eciSynchronize_(eci_handle_);
-  if (rc) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
 bool TTS::Pause() {
-  if (eciPause_(eci_handle_, 1)) {
-    return true;
-  }
-  return false;
+  eci_->Pause(true);
+  audio_->player()->Pause();
+  return true;
 }
 
 bool TTS::Resume() {
-  if (eciPause_(eci_handle_, 0)) {
-    return true;
-  }
-  return false;
+  eci_->Pause(false);
+  audio_->player()->Resume();
+  return true;
 }
 
 bool TTS::Stop() {
-  if (eciStop_(eci_handle_)) {
-    alsa_player_->Interrupt();
-    usleep(10);
-    return true;
-  }
-  return false;
+  eci_->Stop();
+  audio_->player()->Interrupt();
+  usleep(10);
+  return true;
 }
 
 string TTS::TTSVersion() {
-  std::unique_ptr<char[]> version(new char[20]);
-  eciVersion_(version.get());
-  return string(version.get());
+  return eci_->Version();
 }
 
 string LangSwitcher::GetDefaultLanguageCode() {
   const char *a_default_lang = getenv("LANGUAGE");
-  if (a_default_lang == NULL) {
+  if (a_default_lang == nullptr) {
     a_default_lang = getenv("LANG");
-    if (a_default_lang == NULL) {
+    if (a_default_lang == nullptr) {
       a_default_lang = "en";
     }
   }
@@ -324,9 +127,9 @@ string LangSwitcher::GetDefaultLanguageCode() {
 }
 
 bool LangSwitcher::GetValidLanguages(vector<int> *available_languages_index) {
-  for (int i = 0; i < n_languages_; i++) {
+  for (const auto& lang : languages_) {
     for (int j = 0; j < static_cast<int>(the_languages_.size()); j++) {
-      if (a_languages_[i] == the_languages_[j].lang) {
+      if (lang == the_languages_[j].lang) {
         available_languages_index->push_back(j);
       }
     }

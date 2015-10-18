@@ -1,29 +1,14 @@
 #ifndef TTS_H_
 #define TTS_H_
 
-#include "alsa_player.h"
-#include "eci.h"
+#include "audio_manager.h"
+#include "audio_tasks.h"
+#include "eci-c++.h"
 
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-#define PACKAGENAME "tts"
-#define PACKAGEVERSION "1.0"
-#define ECILIBRARYNAME "libibmeci.so"
-
-enum { ANNOTATION_MAX_SIZE = 10, LANG_INFO_MAX = 22 };
-
-struct langInfo {
-  enum ECILanguageDialect lang;
-  const char* code;
-  const char* encoding;
-  const char* id;
-  const char* label;
-};
-
-enum { LANGUAGE_MAX_LABEL = 30 };  // max size of the label field
 
 class LangSwitcher;
 
@@ -37,6 +22,8 @@ class TTS {
     int sample_rate = 1;
   };
 
+  static constexpr char kEciLibraryName[] = "libibmeci.so";
+
   // This class generates speech by calling methods to add processed /
   // non-processed text, then a call to Synthesize to generate the pcm
   // representation of the speech, and, finally, produces the output by calling
@@ -46,7 +33,7 @@ class TTS {
   // to really play the content. This design allows the programs wishing to use
   // this class to be non-blocking, e.g. can perform other actions between calls
   // to IsSpeaking().
-  TTS(AlsaPlayer* alsa_player, const Options& options = Options());
+  TTS(AudioManager* audio, const Options& options = Options());
   ~TTS();
 
   // Loads dynamically the IBM Text-to-Speech library into memory. You must call
@@ -55,14 +42,14 @@ class TTS {
   // otherwise.
   static bool InitECI();
 
-  // Generates the internal pcm representation of the speech containing the text
-  // previously added with calls to AddText().
-  bool Synthesize();
-
   // Adds the given text to be an output. The texts can be appended with
   // subsequent calls to this function. The final output will only be produced
   // when a call to Synthesize() is made.
   bool AddText(const std::string& msg);
+
+  // Generates the internal pcm representation of the speech containing the text
+  // previously added with calls to AddText().
+  bool Synthesize();
 
   // Helper method to generate the internal pcm representation of the speech,
   // without any processing on the text. This would be the same as AddText(...),
@@ -78,24 +65,13 @@ class TTS {
 
   bool GenerateSilence(const int duration);
 
-  int PlayTTS(const int count);
-
-  bool IsSpeaking();
-
-  bool Synchronize();
-
   bool Pause();
 
   bool Resume();
 
   bool Stop();
 
-  void SetLastReply(const long lparam) { lparam_ = lparam; }
-
   std::string TTSVersion();
-
-  AlsaPlayer* player() const { return alsa_player_; }
-  bool speaking() const { return speaking_; }
 
   int GetSpeechRate() const { return speech_rate_; }
 
@@ -104,16 +80,14 @@ class TTS {
   const std::string GetPrefixString() const;
 
  private:
-  void* eci_handle_;
-  AlsaPlayer* alsa_player_;
   std::unique_ptr<LangSwitcher> lang_switcher_;
+  std::unique_ptr<ECI> eci_;
+  AudioManager* audio_;
+
+  std::vector<std::string> pending_texts_;
 
   int speech_rate_ = 50;
 
-  // Is true whenever there is data to send to the sound output.
-  bool speaking_ = false;
-
-  long lparam_;
 };
 
 class TTSError : public std::runtime_error {
@@ -123,17 +97,25 @@ class TTSError : public std::runtime_error {
 
 class LangSwitcher {
  public:
-  LangSwitcher(const ECILanguageDialect* a_languages, const int n_languages)
-      : a_languages_(a_languages), n_languages_(n_languages) {}
+  LangSwitcher(std::vector<ECILanguageDialect> languages)
+      : languages_(languages) {}
   ~LangSwitcher() = default;
+
   ECILanguageDialect InitLanguage();
 
  private:
+  struct langInfo {
+    enum ECILanguageDialect lang;
+    const char* code;
+    const char* encoding;
+    const char* id;
+    const char* label;
+  };
+
   std::string GetDefaultLanguageCode();
   bool GetValidLanguages(std::vector<int>* available_languages_index);
 
-  const ECILanguageDialect* a_languages_;
-  int n_languages_;
+  std::vector<ECILanguageDialect> languages_;
 
   std::vector<langInfo> the_languages_{
       {NODEFINEDCODESET, NULL, NULL, NULL, NULL},

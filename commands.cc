@@ -1,5 +1,7 @@
 #include "commands.h"
+
 #include <iostream>
+#include <memory>
 
 using std::string;
 using std::unique_ptr;
@@ -27,7 +29,7 @@ bool LCommand::Run(TTS* tts, ServerState* server_state) {
     return false;
   }
   string letter_pitch;
-  if (isalpha(args[0])) {
+  if (isupper(args[0])) {
     letter_pitch = "`vb80 ";
   }
   const string msg = letter_pitch + "`ts2 " + args + " `ts0";
@@ -38,12 +40,12 @@ bool LCommand::Run(TTS* tts, ServerState* server_state) {
 }
 
 bool TtsPauseCommand::Run(TTS* tts, ServerState* server_state) {
-  tts->player()->Pause();
+  tts->Pause();
   return true;
 }
 
 bool TtsResumeCommand::Run(TTS* tts, ServerState* server_state) {
-  tts->player()->Resume();
+  tts->Resume();
   return true;
 }
 
