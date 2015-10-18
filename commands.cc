@@ -1,7 +1,7 @@
 #include "commands.h"
 
-#include <iostream>
 #include <memory>
+#include <sstream>
 
 using std::string;
 using std::unique_ptr;
@@ -76,6 +76,23 @@ bool ShCommand::Run(TTS* tts, ServerState* server_state) {
 
   tts->GenerateSilence(duration);
   server_state->queue().push(tts->ReleaseTask());
+  return true;
+}
+
+bool TCommand::Run(TTS* tts, ServerState* server_state) {
+  std::istringstream args(server_state->GetLastArgs());
+  float frequency, length;
+  args >> frequency >> length;
+  if (args.fail()) {
+    return false;
+  }
+
+  // Amplitude chosen to be comfortable to listen, more or less on the same
+  // level as the speech.
+  const float amplitude = 0.3;
+
+  std::unique_ptr<ToneTask> tone(new ToneTask(frequency, amplitude, length));
+  server_state->queue().push(std::move(tone));
   return true;
 }
 

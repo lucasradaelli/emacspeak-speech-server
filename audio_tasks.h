@@ -69,4 +69,25 @@ class SpeechTask : public AudioTask {
   std::vector<Operation> ops_;
 };
 
+// Tone synthesis task.
+//
+// This task generates a sinusoidal tone with the given parameters.
+class ToneTask : public AudioTask {
+ public:
+  ToneTask(float frequency, float amplitude, int duration_ms);
+
+  // Base class overrides.
+  void StartTask(AlsaPlayer* player) override;
+  TaskResult Run(AlsaPlayer* player) override;
+
+ private:
+  const float frequency_;
+  const float amplitude_;
+  const int duration_ms_;
+
+  unsigned int sample_rate_ = 0;
+  unsigned int duration_samples_ = 0;
+  unsigned int t_ = 0;
+};
+
 #endif  // AUDIO_TASKS_H_
