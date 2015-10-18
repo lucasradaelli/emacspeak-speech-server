@@ -25,6 +25,9 @@ public:
   // the task is removed from the queue.
   void Run();
 
+  // Ends the current running task and clears all tasks from the queue.
+  void Clear();
+
   // Returns the player object.
   AlsaPlayer* player() const { return player_.get(); }
 
