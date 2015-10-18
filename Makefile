@@ -1,11 +1,15 @@
 
 CC=g++
 CXXFLAGS+= -g -std=c++11 -m32 -Wall
-LIBS+= -ldl -lasound
-OBJECTS= speech_server.o server_state.o  command_generator.o commands.o tts.o alsa_player.o messages.o
+LIBS+= -lboost_regex -ldl -lasound
+OBJECTS= speech_server.o server_state.o  command_generator.o commands.o tts.o alsa_player.o messages.o text_formatter.o
 
 main: server_main.cc  $(OBJECTS)
 	$(CC) -o speech_server server_main.cc $(OBJECTS) $(CXXFLAGS) $(LIBS)
+
+test: test.cpp
+	$(CC) -o test test.cpp $(OBJECTS) $(CXXFLAGS) $(LIBS)
+
 
 speech_server.o: speech_server.cc speech_server.h
 	$(CC) -c -o speech_server.o speech_server.cc $(CXXFLAGS)
@@ -28,5 +32,9 @@ tts.o: tts.cc tts.h
 messages.o: messages.cc messages.h
 	$(CC) -c -o messages.o messages.cc   $(CXXFLAGS)
 
+
+text_formatter.o: text_formatter.cc text_formatter.h
+	$(CC) -c -o text_formatter.o text_formatter.cc   $(CXXFLAGS)
+
 clean:
-	rm *.o speech_server
+	rm *.o speech_server test
