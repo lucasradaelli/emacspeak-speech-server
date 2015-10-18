@@ -77,7 +77,7 @@ const string TTS::GetPrefixString() const {
 }
 
 bool TTS::Output(const string &msg) {
-  return AddText(msg) && Synthesize() && SubmitTask();
+  return AddText(msg) && Synthesize();
 }
 
 bool TTS::Say(const string &msg) {

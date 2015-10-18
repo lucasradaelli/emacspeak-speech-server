@@ -23,11 +23,19 @@ class LangSwitcher;
 // e.g. can perform other actions between calls to ECI::Speaking().
 class TTS {
  public:
+  // Synthesis sample rates supported by IBM ViaVoice.
+  enum SampleRate {
+    R_8000 = 0,
+    R_11025 = 1,
+    R_22050 = 2,
+  };
+
+  // Options to configure the behavior of this class.
   struct Options {
     Options() noexcept {}
 
-    // todo: add enum for sample rates.
-    int sample_rate = 1;
+    // Sample rate of synthesized speech.
+    SampleRate sample_rate = R_11025;
   };
 
   static constexpr char kEciLibraryName[] = "libibmeci.so";

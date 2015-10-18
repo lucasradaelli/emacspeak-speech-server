@@ -5,14 +5,14 @@
 
 using std::string;
 
-ServerState::ServerState()
-    : server_status_(DATA_PROCESSED), last_args_(new string()) {}
+ServerState::ServerState(AudioManager* audio)
+    : audio_(audio), server_status_(DATA_PROCESSED), last_args_(new string()) {}
 
-void ServerState::ClearMessageQueue() {
-  if (messages_.size() == 0) {
+void ServerState::ClearQueue() {
+  if (queue_.size() == 0) {
     return;
   }
-  std::queue<std::unique_ptr<Message>> empty;
-  std::swap(messages_, empty);
+  decltype(queue_) empty;
+  std::swap(queue_, empty);
   return;
 }
