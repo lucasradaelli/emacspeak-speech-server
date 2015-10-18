@@ -12,7 +12,7 @@
 // This abstract base class represents a single task which is enqueued to
 // produce audio output from the server, such as speech, tone or play.
 class AudioTask {
-public:
+ public:
   enum TaskResult {
     CONTINUE,
     FINISHED,
@@ -29,7 +29,7 @@ public:
   // audio. The tasks is executed repeatedly until it returns FINISHED.
   virtual TaskResult Run(AlsaPlayer* player) = 0;
 
-protected:
+ protected:
   AudioTask() {}
 };
 
@@ -40,7 +40,7 @@ protected:
 // method, which sets a callback that receives the ECI object and can call
 // any sequence of commands on that object.
 class SpeechTask : public AudioTask {
-public:
+ public:
   // Type of the setup callback function.
   using Callback = std::function<void(ECI*)>;
 
@@ -55,7 +55,7 @@ public:
   void Prepare(AlsaPlayer* player) override;
   TaskResult Run(AlsaPlayer* player) override;
 
-private:
+ private:
   ECI* eci_;
   Callback callback_;
 };
