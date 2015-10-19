@@ -2,7 +2,7 @@
 CC=g++
 CXXFLAGS+= -g -std=c++11 -m32 -Wall
 LIBS+= -ldl -lasound -lboost_regex
-OBJECTS= speech_server.o server_state.o command_generator.o commands.o eci-c++.o tts.o alsa_player.o messages.o audio_manager.o audio_tasks.o text_formatter.o
+OBJECTS= speech_server.o server_state.o command_generator.o commands.o eci-c++.o tts.o alsa_player.o audio_manager.o audio_tasks.o text_formatter.o
 
 main: speech_server
 
@@ -33,9 +33,6 @@ eci-c++.o: eci-c++.cc eci-c++.h
 
 tts.o: tts.cc tts.h
 	$(CC) -c -o tts.o tts.cc $(CXXFLAGS)
-
-messages.o: messages.cc messages.h
-	$(CC) -c -o messages.o messages.cc $(CXXFLAGS)
 
 audio_manager.o: audio_manager.cc audio_manager.h
 	$(CC) -c -o audio_manager.o audio_manager.cc $(CXXFLAGS)

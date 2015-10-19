@@ -12,55 +12,75 @@
 
 class LangSwitcher;
 
-// Wrapper class used to communicate with the IBM Text-to-Speech library.
+// Frontend class for speech synthesis using IBM ViaVoice Text-to-Speech.
+//
+// This class generates speech by calling methods to add processed or
+// unprocessed text, then calls Synthesize to generate the PCM representation
+// of the speech, and, finally, submits a speech task to the AudioManager that
+// will handle output to the player.
+//
+// This design allows the programs wishing to use this class to be non-blocking,
+// e.g. can perform other actions between calls to ECI::Speaking().
 class TTS {
  public:
+  // Synthesis sample rates supported by IBM ViaVoice.
+  enum SampleRate {
+    R_8000 = 0,
+    R_11025 = 1,
+    R_22050 = 2,
+  };
+
+  // Options to configure the behavior of this class.
   struct Options {
     Options() noexcept {}
 
-    // todo: add enum for sample rates.
-    int sample_rate = 1;
+    // Sample rate of synthesized speech.
+    SampleRate sample_rate = R_11025;
   };
 
   static constexpr char kEciLibraryName[] = "libibmeci.so";
 
-  // This class generates speech by calling methods to add processed /
-  // non-processed text, then a call to Synthesize to generate the pcm
-  // representation of the speech, and, finally, produces the output by calling
-  // IsSpeaking(), repeatedly,until it returns false,  to give the IBM
-  // Text-to-Speech library the
-  // possibility to write the output into the audio buffer and ask to the player
-  // to really play the content. This design allows the programs wishing to use
-  // this class to be non-blocking, e.g. can perform other actions between calls
-  // to IsSpeaking().
   TTS(AudioManager* audio, const Options& options = Options());
   ~TTS();
 
-  // Loads dynamically the IBM Text-to-Speech library into memory. You must call
-  // this method before attempting to use this class. Will return false if it
-  // fails to open the library or get any of its symbols. Returns true
-  // otherwise.
+  // Dynamically loads the IBM Text-to-Speech library in memory. It must be
+  // called before attempting to use this class. It will throw an exception if
+  // it fails to open the library or to load any of its symbols.
   static bool InitECI();
+
+  // Initializes a new speech task if none is available, then returns it.
+  // Each task defines a packet of instructions that will control the TTS
+  // library to synthesize a piece of audio output. This method implicitly
+  // creates a pending speech-type task and returns it. The task will stay
+  // alive until a call to ReleaseTask() or SubmitTask() is done. Several
+  // methods of this class implicitly create a pending task.
+  SpeechTask* GetTask();
+
+  // Releases the current pending task, if any, and returns it, transferring
+  // ownership to the caller.
+  std::unique_ptr<SpeechTask> ReleaseTask();
+
+  // Submits the current pending task for execution, if any.
+  bool SubmitTask();
 
   // Adds the given text to be an output. The texts can be appended with
   // subsequent calls to this function. The final output will only be produced
-  // when a call to Synthesize() is made.
+  // when call to Synthesize() and SubmitTask() are made.
   bool AddText(const std::string& msg);
 
-  // Generates the internal pcm representation of the speech containing the text
-  // previously added with calls to AddText().
+  // Generates the internal pcm representation of the speech containing the
+  // text previously added with calls to AddText().
   bool Synthesize();
 
-  // Helper method to generate the internal pcm representation of the speech,
-  // without any processing on the text. This would be the same as AddText(...),
-  // Synthesize().
+  // Helper method to generate the internal PCM representation of the speech,
+  // without any processing on the text. This would be the same as
+  // AddText(...), Synthesize().
   bool Output(const std::string& msg);
 
-  // Helper method to generate the internal pcm representation of the speech,
+  // Helper method to generate the internal PCM representation of the speech,
   // prefixing the text with a string to control the speech engine. It will use
   // the default voice plus the current speech speed. This would be the same as
-  // AddText(GetPrefixString() + text),
-  // Synthesize().
+  // AddText(GetPrefixString() + text), Synthesize().
   bool Say(const std::string& msg);
 
   bool GenerateSilence(const int duration);
@@ -84,7 +104,7 @@ class TTS {
   std::unique_ptr<ECI> eci_;
   AudioManager* audio_;
 
-  std::vector<std::string> pending_texts_;
+  std::unique_ptr<SpeechTask> pending_task_;
 
   int speech_rate_ = 50;
 

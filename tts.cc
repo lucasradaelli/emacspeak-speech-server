@@ -43,24 +43,30 @@ TTS::TTS(AudioManager* audio, const Options &options)
 
 TTS::~TTS() {}
 
+SpeechTask *TTS::GetTask() {
+  if (pending_task_ == nullptr) {
+    pending_task_.reset(new SpeechTask(eci_.get()));
+  }
+  return pending_task_.get();
+}
+
+std::unique_ptr<SpeechTask> TTS::ReleaseTask() {
+  return std::move(pending_task_);
+}
+
+bool TTS::SubmitTask() {
+  if (pending_task_ == nullptr) return false;
+  audio_->Push(ReleaseTask());
+  return true;
+}
+
 bool TTS::AddText(const string &msg) {
-  pending_texts_.push_back(msg);
+  GetTask()->AddText(msg);
   return true;
 }
 
 bool TTS::Synthesize() {
-  std::vector<std::string> texts;
-  std::swap(pending_texts_, texts);
-
-  std::unique_ptr<SpeechTask> task(new SpeechTask(eci_.get()));
-  task->Setup([=](ECI* eci) {
-    for (const auto& text : texts) {
-      eci->AddText(text);
-    }
-    eci->Synthesize();
-  });
-
-  audio_->Push(std::move(task));
+  GetTask()->Synthesize();
   return true;
 }
 
@@ -71,9 +77,7 @@ const string TTS::GetPrefixString() const {
 }
 
 bool TTS::Output(const string &msg) {
-  AddText(msg);
-  Synthesize();
-  return true;
+  return AddText(msg) && Synthesize();
 }
 
 bool TTS::Say(const string &msg) {

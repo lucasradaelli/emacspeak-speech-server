@@ -5,13 +5,14 @@
 #include <memory>
 #include <string>
 
-#include "messages.h"
+#include "audio_manager.h"
+#include "audio_tasks.h"
 
 enum ServerStatus { DATA_PROCESSED = 0, COMMAND_PENDING = 1 };
 
 class ServerState {
  public:
-  ServerState();
+  explicit ServerState(AudioManager* audio);
   ~ServerState() = default;
 
   std::string* GetMutableLastArgs() const { return last_args_.get(); }
@@ -24,12 +25,15 @@ class ServerState {
     server_status_ = server_status;
   }
 
-  std::queue<std::unique_ptr<Message>>& messages() { return messages_; }
+  AudioManager* audio() { return audio_; }
+  std::queue<std::unique_ptr<AudioTask>>& queue() { return queue_; }
 
-  void ClearMessageQueue();
+  void ClearQueue();
 
  private:
-  std::queue<std::unique_ptr<Message>> messages_;
+  AudioManager* audio_;
+  std::queue<std::unique_ptr<AudioTask>> queue_;
+
   std::string last_command_;
   ServerStatus server_status_;
 

@@ -18,6 +18,7 @@ CommandRegistry::CommandRegistry() {
   commands_map_["d"] = unique_ptr<Command>(new DCommand());
   commands_map_["c"] = unique_ptr<Command>(new CCommand());
   commands_map_["sh"] = unique_ptr<Command>(new ShCommand());
+  commands_map_["t"] = unique_ptr<Command>(new TCommand());
   commands_map_["tts_set_speech_rate"] =
       unique_ptr<Command>(new TtsSetSpeechRateCommand());
 }

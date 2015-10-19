@@ -116,6 +116,19 @@ void ECI::SpeakTextEx(const std::string& text, bool annotations,
   lib_.eciSpeakTextEx(text.c_str(), annotations, language);
 }
 
+std::vector<ECILanguageDialect> ECI::GetAvailableLanguages() {
+  int num_languages = 0;
+  if (lib_.eciGetAvailableLanguages(nullptr, &num_languages) != 0) {
+    throw ECIError(0, "Failed to get available languages from ECI.");
+  }
+  std::vector<ECILanguageDialect> languages(num_languages);
+  if (lib_.eciGetAvailableLanguages(languages.data(), &num_languages) != 0) {
+    throw ECIError(0, "Failed to get available languages from ECI.");
+  }
+  languages.resize(num_languages);
+  return languages;
+}
+
 void ECI::AddText(const std::string& text) {
   Check(lib_.eciAddText(handle_, text.c_str()));
 }
@@ -230,19 +243,6 @@ ECICallbackReturn ECI::Demuxer(ECIHand, ECIMessage message, long int lparam,
     return eci->callbacks_[message](lparam);
   }
   return eciDataProcessed;
-}
-
-std::vector<ECILanguageDialect> ECI::GetAvailableLanguages() {
-  int num_languages = 0;
-  if (lib_.eciGetAvailableLanguages(nullptr, &num_languages) != 0) {
-    throw ECIError(0, "Failed to get available languages from ECI.");
-  }
-  std::vector<ECILanguageDialect> languages(num_languages);
-  if (lib_.eciGetAvailableLanguages(languages.data(), &num_languages) != 0) {
-    throw ECIError(0, "Failed to get available languages from ECI.");
-  }
-  languages.resize(num_languages);
-  return languages;
 }
 
 void ECI::Check(bool value) {

@@ -87,6 +87,12 @@ class ShCommand : public Command {
   bool Run(TTS* tts, ServerState* server_state) override;
 };
 
+class TCommand : public Command {
+ public:
+  TCommand() = default;
+  bool Run(TTS* tts, ServerState* server_state) override;
+};
+
 class TtsSetSpeechRateCommand : public Command {
  public:
   TtsSetSpeechRateCommand() = default;

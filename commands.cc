@@ -1,25 +1,18 @@
 #include "commands.h"
 
-#include <iostream>
 #include <memory>
+#include <sstream>
 
 using std::string;
 using std::unique_ptr;
 
 bool VersionCommand::Run(TTS* tts, ServerState* server_state) {
-  const string ttsversion = tts->TTSVersion();
-  const string msg = "viavoice " + ttsversion;
-  if (!tts->Say(msg)) {
-    return false;
-  }
-  return true;
+  const string msg = "ViaVoice " + tts->TTSVersion();
+  return tts->Say(msg) && tts->SubmitTask();
 }
 
 bool TtsSayCommand::Run(TTS* tts, ServerState* server_state) {
-  if (!tts->Say(server_state->GetLastArgs())) {
-    return false;
-  }
-  return true;
+  return tts->Say(server_state->GetLastArgs()) && tts->SubmitTask();
 }
 
 bool LCommand::Run(TTS* tts, ServerState* server_state) {
@@ -33,10 +26,7 @@ bool LCommand::Run(TTS* tts, ServerState* server_state) {
     letter_pitch = "`vb80 ";
   }
   const string msg = letter_pitch + "`ts2 " + args + " `ts0";
-  if (!tts->Say(msg)) {
-    return false;
-  }
-  return true;
+  return tts->Say(msg) && tts->SubmitTask();
 }
 
 bool TtsPauseCommand::Run(TTS* tts, ServerState* server_state) {
@@ -51,40 +41,58 @@ bool TtsResumeCommand::Run(TTS* tts, ServerState* server_state) {
 
 bool SCommand::Run(TTS* tts, ServerState* server_state) {
   if (tts->Stop()) {
-    server_state->ClearMessageQueue();
+    server_state->ClearQueue();
     return true;
   }
   return false;
 }
 
 bool QCommand::Run(TTS* tts, ServerState* server_state) {
-  unique_ptr<Message> message(new SpeechMessage(server_state->GetLastArgs()));
-  server_state->messages().push(std::move(message));
-  return true;
-}
-
-bool DCommand::Run(TTS* tts, ServerState* server_state) {
-  while (!server_state->messages().empty()) {
-    server_state->messages().front()->Do(tts, server_state);
-    server_state->messages().pop();
-  }
+  tts->Say(server_state->GetLastArgs());
+  server_state->queue().push(tts->ReleaseTask());
   return true;
 }
 
 bool CCommand::Run(TTS* tts, ServerState* server_state) {
-  unique_ptr<Message> message(new CodeMessage(server_state->GetLastArgs()));
-  server_state->messages().push(std::move(message));
+  tts->Output(server_state->GetLastArgs());
+  server_state->queue().push(tts->ReleaseTask());
+  return true;
+}
+
+bool DCommand::Run(TTS* tts, ServerState* server_state) {
+  while (!server_state->queue().empty()) {
+    auto& task = server_state->queue().front();
+    server_state->audio()->Push(std::move(task));
+    server_state->queue().pop();
+  }
   return true;
 }
 
 bool ShCommand::Run(TTS* tts, ServerState* server_state) {
-  int duration = atoi(server_state->GetLastArgs().c_str());
+  int duration = std::stoi(server_state->GetLastArgs());
   if (duration <= 0) {
     return false;
   }
 
-  unique_ptr<Message> message(new SilenceMessage(duration));
-  server_state->messages().push(std::move(message));
+  tts->GenerateSilence(duration);
+  server_state->queue().push(tts->ReleaseTask());
+  return true;
+}
+
+bool TCommand::Run(TTS* tts, ServerState* server_state) {
+  std::istringstream args(server_state->GetLastArgs());
+  float frequency, length;
+  args >> frequency >> length;
+  if (args.fail()) {
+    return false;
+  }
+
+  // Amplitude chosen to be comfortable to listen, more or less on the same
+  // level as the speech.
+  const float amplitude = 0.3;
+
+  std::unique_ptr<ToneTask> tone(new ToneTask(frequency, amplitude, length));
+  server_state->queue().push(std::move(tone));
   return true;
 }
 

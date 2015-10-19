@@ -8,10 +8,11 @@
 #include <string>
 #include <vector>
 
-// Frontend C++ class for the IBM TTS library.
+// Wrapper class for the IBM ViaVoice TTS Eloquence Command Interface (ECI)
+// library.
 //
-// This class opens the IBM TTS library dynamically, loads its symbols,
-// and presents its API to the application as a convenient C++ object.
+// This class opens the IBM ViaVoice TTS ECI library dynamically, loads its
+// symbols, and presents its API to the application as a convenient C++ object.
 class ECI {
  public:
   using Callback = std::function<ECICallbackReturn(long)>;
@@ -27,6 +28,7 @@ class ECI {
   static void SpeakText(const std::string& text, bool annotations);
   static void SpeakTextEx(const std::string& text, bool annotations,
                           ECILanguageDialect language);
+  static std::vector<ECILanguageDialect> GetAvailableLanguages();
 
   // Synthesis control.
   void AddText(const std::string& text);
@@ -71,9 +73,6 @@ class ECI {
 
   // Custom Filters.
   // TODO: Missing: (everything).
-
-  // Languages, other.
-  static std::vector<ECILanguageDialect> GetAvailableLanguages();
 
  private:
   struct Library;

@@ -12,7 +12,7 @@
 // This abstract base class represents a single task which is enqueued to
 // produce audio output from the server, such as speech, tone or play.
 class AudioTask {
-public:
+ public:
   enum TaskResult {
     CONTINUE,
     FINISHED,
@@ -20,44 +20,74 @@ public:
 
   virtual ~AudioTask() {}
 
-  // Prepares the task. This method is called once when the task reaches the
-  // front of the queue.
-  virtual void Prepare(AlsaPlayer* player) {}
+  // Starts the task. This method is called only once when the task reaches
+  // the front of the queue, it already has exclusive access to the player
+  // and will start running. It is used to prepare the task before the
+  // Run() method is called.
+  virtual void StartTask(AlsaPlayer* player) {}
+
+  // Ends the task. This method is only called if StartTask() was previously
+  // called for this task. The task may end either when it finished producing
+  // its output (if Run() returnes FINISHED), or when some other server
+  // command requested cleanup of any running tasks. The parameter finished
+  // is used to determine the reason the task is being ended.
+  virtual void EndTask(AlsaPlayer* player, bool finished) {}
 
   // Executes the task. Only the task at the front of the queue is executed
   // at once, and it is only executed when the player is ready to accept more
   // audio. The tasks is executed repeatedly until it returns FINISHED.
   virtual TaskResult Run(AlsaPlayer* player) = 0;
 
-protected:
+ protected:
   AudioTask() {}
 };
 
 // Speech synthesis task.
 //
-// This task uses controls the ECI library to synthesize speech, then pass
-// the result to the player. It provides some flexibility via the Setup()
-// method, which sets a callback that receives the ECI object and can call
-// any sequence of commands on that object.
+// This task controls the ECI library to synthesize speech, then pass the
+// result to the player. Several ECI operations can be scheduled before the
+// task starts. When the task starts, it invokes all operations on the ECI
+// object in sequence to synthesize speech.
 class SpeechTask : public AudioTask {
-public:
-  // Type of the setup callback function.
-  using Callback = std::function<void(ECI*)>;
-
+ public:
   explicit SpeechTask(ECI* eci);
-  ~SpeechTask() override;
 
-  // Sets the function that is called to synthesize the speech using the ECI
-  // object.
-  void Setup(Callback callback);
+  // Schedules an AddText(text) operation on ECI.
+  void AddText(const std::string& text);
+
+  // Schedules a Synthesize() operation on ECI.
+  void Synthesize();
 
   // Base class overrides.
-  void Prepare(AlsaPlayer* player) override;
+  void StartTask(AlsaPlayer* player) override;
   TaskResult Run(AlsaPlayer* player) override;
 
-private:
+ private:
   ECI* eci_;
-  Callback callback_;
+
+  using Operation = std::function<void(ECI*)>;
+  std::vector<Operation> ops_;
+};
+
+// Tone synthesis task.
+//
+// This task generates a sinusoidal tone with the given parameters.
+class ToneTask : public AudioTask {
+ public:
+  ToneTask(float frequency, float amplitude, int duration_ms);
+
+  // Base class overrides.
+  void StartTask(AlsaPlayer* player) override;
+  TaskResult Run(AlsaPlayer* player) override;
+
+ private:
+  const float frequency_;
+  const float amplitude_;
+  const int duration_ms_;
+
+  unsigned int sample_rate_ = 0;
+  unsigned int duration_samples_ = 0;
+  unsigned int t_ = 0;
 };
 
 #endif  // AUDIO_TASKS_H_
