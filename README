@@ -1,0 +1,18 @@
+Emacspeak Speech Server
+=======================
+
+This is a C++ implementation of an Emacspeak speech server that connects to the
+IBM ViaVoice Text-to-Speech library for speech synthesis.
+
+
+Contributing
+------------
+
+Contributions are always welcome and highly encouraged.
+See CONTRIBUTING for more information on how to get started.
+
+
+License
+-------
+
+Apache 2.0 - See LICENSE for more information.
