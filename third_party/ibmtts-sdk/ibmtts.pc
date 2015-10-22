@@ -1,0 +1,11 @@
+prefix=/opt/IBM/ibmtts-devel
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: ibmtts
+Description: IBM Text To Speech
+Version: 6.7
+Libs: -L${libdir} -llibibmeci
+Cflags: -I${includedir}
+

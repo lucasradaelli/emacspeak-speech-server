@@ -1,0 +1,38 @@
+IBMTTS-DEVEL =================================================================
+
+There are two different ways to build the TTS SDK (C and Python bindings).
+
+1) Traditional make without libtools only builds the C bindings.
+
+	make -f Makefile.simple
+
+2) Automake builds both the C and Python bindings.
+
+	sh autogen.sh
+	./configure --prefix=/opt/IBM/ibmtts-devel
+	make clean
+	make 2>&1 | tee make.errs
+	make install
+
+To package the ibmtts-devel C bindings:
+
+	rpmbuild -ba ibmtts-devel.spec
+
+To package the Python bindings, see the INSTALL file in the pyibmtts 
+folder.
+
+GNOME-SPEECH =================================================================
+
+To "automake" build gnome-speech with ibmtts-devel, then:
+
+	./configure --prefix=/usr --with-viavoice-dir=/opt/IBM/ibmtts-devel
+	make install
+
+To "jhbuild" build gnome-speech with ibmtts-devel, then in $HOME/.jhbuilrc 
+add the following line:
+
+	module_autogenargs['gnome-speech'] = autogenargs + ' --with-viavoice-dir=/opt/IBM/ibmtts-devel'
+
+	jhbuild buildone -an gnome-speech
+
+#EOF

@@ -1,0 +1,11 @@
+This open source software is intended to provide ABIs for the
+Accessible Technologies (ATs) and desktops to build with so that
+the TTS Runtime will work.
+
+The upstream source code is maintained at:
+
+	http://sourceforge.net/projects/ibmtts-sdk/
+
+The package includes both C and Python (pyibmtts) bindings.
+
+#EOF

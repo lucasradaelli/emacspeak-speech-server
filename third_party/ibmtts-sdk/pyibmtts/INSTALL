@@ -1,0 +1,47 @@
+Building/installing with automake
+---
+
+Follow the directions described in the INSTALL file in the root 
+ibmtts-sdk folder. pyibmtts is built and installed along with 
+ibmtts-sdk when using automake.
+
+Building/installing with distutils
+---
+
+pyibmtts can be built and installed independently of ibmtts-sdk and 
+the autotools process using the standard Python distutils.
+
+In the pyibmtts folder,
+
+1) 'python setup.py build' to build the pyibmtts extension. You must 
+have already built or installed the libibmeci.so (Linux) or ibmeci.lib 
+(Windows) module for this step to succeed.
+
+2) 'python setup.py install' to install the pyibmtts extension to your 
+Python site-packages folder.
+
+NOTE
+---
+
+Changes to the pyibmtts.pyx file necessitate a rebuild of the C source 
+using the Pyrex package. Get it from
+
+	wget \ 
+	http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/Pyrex-0.9.3.1.tar.gz
+	tar xzf Pyrex-0.9.3.1.tar.gz
+	cd Pyrex-0.9.3.1
+	su
+	python setup.py install
+	exit
+
+Packaging pyibmtts
+---
+
+In the pyibmtts folder,
+
+1) 'python setup.py bdist_rpm' to package the extension binary and 
+source in separate RPMs and archive files. Look in the ./dist folder for 
+the final packages.
+
+2) 'python setup.py bdist_wininst' to package the extension binary in a 
+Windows installer.

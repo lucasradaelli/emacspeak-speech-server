@@ -1,0 +1,51 @@
+#
+# Copyright 2005, IBM Corp.
+# George Kraft IV <gk4@austin.ibm.com>
+#
+# Licensed under the Common Public License v1.0
+#
+# Build stub libraries for applications to link to at build time.
+#
+
+HFILES = eci.h
+CFILES = libibmeci.c
+OFILES = libibmeci.o
+SOFILES = libibmeci.so
+CFLAGS=-g -Wall  -fno-builtin 
+
+PKGDIR = /opt/IBM/ibmtts-devel
+LIBDIR = $(PKGDIR)/lib
+INCDIR = $(PKGDIR)/inc
+
+INSTALL_LIB=$(INSTALL_ROOT)/$(LIBDIR)
+INSTALL_INC=$(INSTALL_ROOT)/$(INCDIR)
+INSTALL_PKG=$(INSTALL_ROOT)/$(PKGDIR)
+
+# For ppc64 platform add flag to generate 64-bit shared libs
+ifeq ($(shell arch),ppc64)
+	LD=ld -m elf64ppc
+else
+	LD=ld
+endif
+
+%.so : %.o
+	$(LD) -shared -o $@ --version-script Version -h `grep "$(subst .o,,$<) " LibNameMap.txt | cut -f2 -d' '`  $<
+
+libs: $(OFILES) $(SOFILES)
+
+package:
+	rpmbuild -ba --sign ibmtts-devel.spec
+
+clean:
+	rm -f $(OFILES) *.so
+
+.PHONY: clean libs
+
+install:
+	install -d $(INSTALL_PKG)
+	install README $(INSTALL_PKG)
+	install -d $(INSTALL_LIB)
+	install $(SOFILES) $(INSTALL_LIB)
+	install -d $(INSTALL_INC)
+	install $(HFILES) $(INSTALL_INC)
+

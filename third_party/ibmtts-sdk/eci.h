@@ -363,7 +363,7 @@ enum ECIFilterError {
   FilterOutOfMemory,          
   FilterInternalError,			
   FilterAccessError				
-}; 
+};
 
 enum ECIFilterError ECIFNDECLARE eciDeactivateFilter(ECIHand eciHandle, ECIFilterHand pFilter);
 #ifdef __cplusplus

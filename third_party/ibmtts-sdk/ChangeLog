@@ -1,0 +1,8 @@
+2006-04-05 Peter Parente <pparent@us.ibm.com>
+
+	* added pyibmtts
+
+2005-12-06 George Kraft IV <gk4@austin.ibm.com>
+
+	* ibmeci.c: ABI stubs
+
