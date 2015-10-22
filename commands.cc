@@ -3,6 +3,8 @@
 #include <memory>
 #include <sstream>
 
+#include "text_formatter.h"
+
 using std::string;
 using std::unique_ptr;
 
@@ -48,7 +50,9 @@ bool SCommand::Run(TTS* tts, ServerState* server_state) {
 }
 
 bool QCommand::Run(TTS* tts, ServerState* server_state) {
-  tts->Say(server_state->GetLastArgs());
+  string processed_message = server_state->text_formatter()->Format(
+      server_state->GetLastArgs(), server_state->GetPunctuationMode());
+  tts->Say(processed_message);
   server_state->queue().push(tts->ReleaseTask());
   return true;
 }
@@ -103,5 +107,22 @@ bool TtsSetSpeechRateCommand::Run(TTS* tts, ServerState* server_state) {
   }
 
   tts->SetSpeechRate(speech_rate);
+  return true;
+}
+
+bool TtsSetPunctuationsCommand::Run(TTS* tts, ServerState* server_state) {
+  const string mode = server_state->GetLastArgs();
+  TextFormatter::PunctuationMode punctuation_mode;
+  if (mode == "all") {
+    punctuation_mode = TextFormatter::ALL;
+  } else if (mode == "some") {
+    punctuation_mode = TextFormatter::SOME;
+  } else if (mode == "none") {
+    punctuation_mode = TextFormatter::NONE;
+  } else {
+    return false;
+  }
+
+  server_state->SetPunctuationMode(punctuation_mode);
   return true;
 }

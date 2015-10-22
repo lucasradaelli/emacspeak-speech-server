@@ -99,4 +99,10 @@ class TtsSetSpeechRateCommand : public Command {
   bool Run(TTS* tts, ServerState* server_state) override;
 };
 
+class TtsSetPunctuationsCommand : public Command {
+ public:
+  TtsSetPunctuationsCommand() = default;
+  bool Run(TTS* tts, ServerState* server_state) override;
+};
+
 #endif  // COMMANDS_H_

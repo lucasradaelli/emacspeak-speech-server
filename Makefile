@@ -9,9 +9,6 @@ main: speech_server
 speech_server: server_main.cc  $(OBJECTS)
 	$(CC) -o speech_server server_main.cc $(OBJECTS) $(CXXFLAGS) $(LIBS)
 
-test: test.cpp
-	$(CC) -o test test.cpp $(OBJECTS) $(CXXFLAGS) $(LIBS)
-
 
 speech_server.o: speech_server.cc speech_server.h
 	$(CC) -c -o speech_server.o speech_server.cc $(CXXFLAGS)
@@ -45,4 +42,4 @@ text_formatter.o: text_formatter.cc text_formatter.h
 	$(CC) -c -o text_formatter.o text_formatter.cc   $(CXXFLAGS)
 
 clean:
-	rm -f *.o speech_server test
+	rm -f *.o speech_server

@@ -7,6 +7,7 @@
 
 #include "audio_manager.h"
 #include "audio_tasks.h"
+#include "text_formatter.h"
 
 enum ServerStatus { DATA_PROCESSED = 0, COMMAND_PENDING = 1 };
 
@@ -30,6 +31,17 @@ class ServerState {
 
   void ClearQueue();
 
+  TextFormatter* text_formatter() { return text_formatter_.get(); }
+
+  TextFormatter::PunctuationMode GetPunctuationMode() const {
+    return punctuation_mode_;
+  }
+
+  void SetPunctuationMode(
+      const TextFormatter::PunctuationMode punctuation_mode) {
+    punctuation_mode_ = punctuation_mode;
+  }
+
  private:
   AudioManager* audio_;
   std::queue<std::unique_ptr<AudioTask>> queue_;
@@ -38,6 +50,10 @@ class ServerState {
   ServerStatus server_status_;
 
   std::unique_ptr<std::string> last_args_;
+
+  std::unique_ptr<TextFormatter> text_formatter_;
+
+  TextFormatter::PunctuationMode punctuation_mode_ = TextFormatter::ALL;
 };
 
 #endif  // SERVER_STATE_H_

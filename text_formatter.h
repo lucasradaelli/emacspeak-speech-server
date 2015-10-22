@@ -34,8 +34,8 @@ class TextFormatter {
   using regex = boost::regex;
 
   std::vector<std::pair<const regex*, std::string>> all_punctuation_;
-  std::unordered_map<const regex*, std::string> some_punctuation_;
-  std::unordered_map<const regex*, std::string> no_punctuation_;
+  std::vector<std::pair<const regex*, std::string>> some_punctuation_;
+  std::vector<std::pair<const regex*, std::string>> no_punctuation_;
 
   static const regex star_regex_;
   static const regex dash_regex_;
@@ -44,6 +44,9 @@ class TextFormatter {
   static const regex right_paren_regex_;
   static const regex at_regex_;
   static const regex all_punctuation_regex_;
+
+  static const regex some_punctuation_remove_list_;
+  static const regex some_punctuation_pause_list_;
 };
 
 class ECITextFormatter : public TextFormatter {
@@ -53,8 +56,6 @@ class ECITextFormatter : public TextFormatter {
 
   std::string Format(const std::string& text,
                      const PunctuationMode punctuation_mode) override;
-
- private:
 };
 
 #endif  // TEXT_FORMATTER_H_
