@@ -357,13 +357,13 @@ typedef void *ECIFilterHand;
 
 #define NULL_FILTER_HAND 0
 
-typedef enum ECIFilterError {
+enum ECIFilterError {
   FilterNoError,					
   FilterFileNotFound,        	
   FilterOutOfMemory,          
   FilterInternalError,			
   FilterAccessError				
-}; 
+};
 
 enum ECIFilterError ECIFNDECLARE eciDeactivateFilter(ECIHand eciHandle, ECIFilterHand pFilter);
 #ifdef __cplusplus

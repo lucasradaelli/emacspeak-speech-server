@@ -9,4 +9,4 @@ be used to build applications when a licensed ibmtts is not available. Only the
 ECI ABIs are provided. There is no TTS runtime code provided.
 
 Local Modifications:
-No modifications.
+Fixed compilation errors. See git log.
