@@ -22,8 +22,8 @@
 #include <sys/time.h>
 
 AlsaPlayer::AlsaPlayer(const Options& options) : options_(options) {
-  int error =
-      snd_pcm_open(&pcm_, options.device.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
+  int error = snd_pcm_open(&pcm_, options.device.c_str(),
+                           SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
   if (error < 0) {
     throw AlsaError("Failed to open ALSA sound device", error);
   }
@@ -37,7 +37,10 @@ AlsaPlayer::AlsaPlayer(const Options& options) : options_(options) {
   buffer_.reset(new char[period_size_ * frame_size_]);
 }
 
-AlsaPlayer::~AlsaPlayer() { snd_pcm_close(pcm_); }
+AlsaPlayer::~AlsaPlayer() {
+  // Cleanup.
+  snd_pcm_close(pcm_);
+}
 
 void AlsaPlayer::SetupPCM() {
   auto check = [](int error) {
@@ -145,48 +148,54 @@ void AlsaPlayer::RecoverFromUnderrun() {
   snd_pcm_status_t* status;
   snd_pcm_status_alloca(&status);
 
-  int res = snd_pcm_status(pcm_, status);
-  if (res < 0) {
-    fprintf(stderr, "status error: %s", snd_strerror(res));
-    exit(EXIT_FAILURE);
+  int error = snd_pcm_status(pcm_, status);
+  if (error < 0) {
+    throw AlsaError("Failed to get PCM status during recover", error);
   }
 
-  if (snd_pcm_status_get_state(status) == SND_PCM_STATE_XRUN) {
-    struct timeval now, diff, tstamp;
-    gettimeofday(&now, 0);
-    snd_pcm_status_get_trigger_tstamp(status, &tstamp);
-    timersub(&now, &tstamp, &diff);
-    fprintf(stderr, "Underrun!!! (at least %.3f ms long)\n",
-            diff.tv_sec * 1000 + diff.tv_usec / 1000.0);
-    if ((res = snd_pcm_prepare(pcm_)) < 0) {
-      fprintf(stderr, "xrun: prepare error: %s", snd_strerror(res));
-      exit(EXIT_FAILURE);
-    }
-    return;  // ok, data should be accepted again
+  snd_pcm_state_t state = snd_pcm_status_get_state(status);
+
+  if (state != SND_PCM_STATE_XRUN) {
+    std::ostringstream sstr;
+    sstr << "Stream found in unexpected state " << snd_pcm_state_name(state)
+         << " while recovering from underrun";
+    throw AlsaError(sstr.str(), -EPIPE);
   }
 
-  fprintf(stderr, "read/write error, state = %s",
-          snd_pcm_state_name(snd_pcm_status_get_state(status)));
-  exit(EXIT_FAILURE);
+  struct timeval now, diff, tstamp;
+  gettimeofday(&now, 0);
+  snd_pcm_status_get_trigger_tstamp(status, &tstamp);
+  timersub(&now, &tstamp, &diff);
+
+  std::cerr << "AlsaPlayer: Sound buffer underrun ("
+            << (diff.tv_sec * 1000 + diff.tv_usec / 1000.0)
+            << "ms)" << std::endl;
+
+  if ((error = snd_pcm_prepare(pcm_)) < 0) {
+    throw AlsaError("Failed to recover from underrun", error);
+  }
 }
 
 void AlsaPlayer::RecoverFromSuspend() {
-  int res;
+  std::cerr << "AlsaPlayer: ALSA was suspended, trying to resume..."
+            << std::endl;
 
-  fprintf(stderr, "Suspended. Trying resume. ");
-  fflush(stderr);
-  while ((res = snd_pcm_resume(pcm_)) == -EAGAIN)
+  int error;
+  while ((error = snd_pcm_resume(pcm_)) == -EAGAIN) {
+    // TODO: Do not block on ALSA.
     sleep(1);  // wait until suspend flag is released
-  if (res < 0) {
-    fprintf(stderr, "Failed. Restarting stream. ");
-    fflush(stderr);
-    if ((res = snd_pcm_prepare(pcm_)) < 0) {
-      fprintf(stderr, "suspend: prepare error: %s", snd_strerror(res));
-      exit(EXIT_FAILURE);
+  }
+
+  if (error < 0) {
+    std::cerr << "AlsaPlayer: Failed to resume, trying to restart..."
+              << std::endl;
+
+    if ((error = snd_pcm_prepare(pcm_)) < 0) {
+      throw AlsaError("Failed to recover from suspend", error);
     }
   }
 
-  fprintf(stderr, "Done.\n");
+  std::cerr << "AlsaPlayer: Recovered from suspend." << std::endl;
 }
 
 std::string AlsaError::GenerateMessage(const std::string& arg, int code) {
