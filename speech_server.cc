@@ -88,7 +88,7 @@ int SpeechServer::MainLoop() {
     const bool audio_output_pending = audio_->pending();
 
     if (audio_output_pending) {
-      auto alsa_fds = audio_->player()->GetPollDescriptors();
+      auto alsa_fds = audio_->GetPollDescriptors();
       std::copy(std::make_move_iterator(alsa_fds.begin()),
                 std::make_move_iterator(alsa_fds.end()),
                 std::back_inserter(fds));
@@ -107,7 +107,7 @@ int SpeechServer::MainLoop() {
     // If there was any audio tasks enqueued and the sound output is ready,
     // run those tasks now.
     if (audio_output_pending &&
-        audio_->player()->GetPollEvents(fds.data() + 1, fds.size() - 1)) {
+        audio_->GetPollEvents(fds.data() + 1, fds.size() - 1)) {
       audio_->Run();
     }
 

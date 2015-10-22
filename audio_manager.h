@@ -42,6 +42,14 @@ public:
   // Ends the current running task and clears all tasks from the queue.
   void Clear();
 
+  // Returns the set of file descriptors that the AudioManager must wait for in
+  // order to run the task at the front of the queue.
+  std::vector<struct pollfd> GetPollDescriptors() const;
+
+  // Returns the number of interesting events for the task at the front of the
+  // queue.
+  int GetPollEvents(struct pollfd* fds, int nfds) const;
+
   // Returns the player object.
   AlsaPlayer* player() const { return player_.get(); }
 

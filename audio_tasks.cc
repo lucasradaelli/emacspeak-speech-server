@@ -16,6 +16,16 @@
 
 #include <cmath>
 
+// AudioTask
+
+std::vector<pollfd> AudioTask::GetPollDescriptors(AlsaPlayer* player) const {
+  return player->GetPollDescriptors();
+}
+
+int AudioTask::GetPollEvents(AlsaPlayer* player, pollfd* fds, int nfds) const {
+  return player->GetPollEvents(fds, nfds);
+}
+
 // SpeechTask
 
 SpeechTask::SpeechTask(ECI* eci) : eci_(eci) {}

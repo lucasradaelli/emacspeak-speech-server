@@ -52,6 +52,20 @@ class AudioTask {
   // audio. The tasks is executed repeatedly until it returns FINISHED.
   virtual TaskResult Run(AlsaPlayer* player) = 0;
 
+  // Returns the set of file descriptors that this task must wait for in order
+  // to run. By default, all tasks wait on the AlsaPlayer object, but specific
+  // kinds of tasks can override this method to wait on a different descriptor,
+  // e.g. an external process.
+  virtual std::vector<struct pollfd> GetPollDescriptors(
+      AlsaPlayer* player) const;
+
+  // Returns the number of interesting events for this task, given the output
+  // descriptor list from a previous poll() call. If the return value is
+  // different from zero, Run() will be called. By default, all tasks will run
+  // whenever the AlsaPlayer object gets events on the ALSA descriptors.
+  virtual int GetPollEvents(AlsaPlayer* player, struct pollfd* fds,
+                            int nfds) const;
+
  protected:
   AudioTask() {}
 };

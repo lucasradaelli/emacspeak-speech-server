@@ -60,3 +60,19 @@ void AudioManager::Clear() {
   decltype(queue_) empty;
   std::swap(queue_, empty);
 }
+
+std::vector<pollfd> AudioManager::GetPollDescriptors() const {
+  if (!queue_.empty()) {
+    return queue_.front()->GetPollDescriptors(player_.get());
+  } else {
+    return {};
+  }
+}
+
+int AudioManager::GetPollEvents(pollfd* fds, int nfds) const {
+  if (!queue_.empty()) {
+    return queue_.front()->GetPollEvents(player_.get(), fds, nfds);
+  } else {
+    return 0;
+  }
+}
