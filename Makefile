@@ -1,6 +1,6 @@
 
 CC=g++
-CXXFLAGS+= -g -std=c++11 -m32 -Wall
+CXXFLAGS+= -g -std=c++11 -m32 -Wall -I./third_party/ibmtts-sdk
 LIBS+= -ldl -lasound -lboost_regex
 OBJECTS= speech_server.o server_state.o command_generator.o commands.o eci-c++.o tts.o alsa_player.o audio_manager.o audio_tasks.o
 

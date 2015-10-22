@@ -1,0 +1,12 @@
+URL: http://sourceforge.net/projects/ibmtts-sdk/files/ibmtts-sdk/ibmtts-sdk-6.7.4/ibmtts-sdk-6.7.4.tar.gz
+Version: 6.7.4
+License: BSD
+License File: LICENSE
+
+Description:
+This is a development package for IBM Text To Speech (TTS). It is intended to
+be used to build applications when a licensed ibmtts is not available. Only the
+ECI ABIs are provided. There is no TTS runtime code provided.
+
+Local Modifications:
+No modifications.

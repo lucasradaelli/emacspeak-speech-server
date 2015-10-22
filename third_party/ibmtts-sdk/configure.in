@@ -1,0 +1,20 @@
+AC_INIT(ibmeci.c)
+AM_INIT_AUTOMAKE(libibmeci,6.7)
+AC_CONFIG_HEADERS(config.h)
+AC_PROG_LIBTOOL
+
+AC_PROG_INSTALL
+
+AC_LANG_C
+AC_PROG_CC
+AC_PROG_MAKE_SET
+
+dnl AC_HEADER_STDC
+dnl AC_CHECK_HEADERS(./eci.h,[],[AC_MSG_ERROR(required header file missing)])
+
+AC_OUTPUT([
+Makefile
+ibmtts.pc
+docs/Makefile
+pyibmtts/Makefile
+])

@@ -1,0 +1,22 @@
+This open source software is intended to provide ABIs for the
+Accessible Technologies (ATs) and desktops to build with so that
+the TTS Runtime will work.
+
+AUTHORS		maintainers of this program
+ChangeLog	list of all changes made to program source files
+CONTRIBUTE	contribution agreement
+COPYING		license of this program
+INSTALL		instructions how to build and install this program
+LICENSE		end-user agreement
+NEWS		list of releases worth mentioning
+README		this file
+
+The upstream source code is maintained at: 
+
+	http://sourceforge.net/projects/ibmtts-sdk/
+
+Copyrighted developer documentation for IBM TTS can be obtained at:
+
+	http://www.wizzardsoftware.com/docs/tts.pdf
+
+#EOF

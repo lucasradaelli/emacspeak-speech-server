@@ -357,7 +357,7 @@ typedef void *ECIFilterHand;
 
 #define NULL_FILTER_HAND 0
 
-enum ECIFilterError {
+typedef enum ECIFilterError {
   FilterNoError,					
   FilterFileNotFound,        	
   FilterOutOfMemory,          
