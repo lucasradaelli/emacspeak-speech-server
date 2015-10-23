@@ -12,7 +12,7 @@ find_package(ALSA REQUIRED)
 
 # Use Boost.Regex since the libstdc++-4.8 version that comes with
 # Ubuntu 14.04 LTS has a broken implementation of C++11's <regex>.
-find_package(Boost 1.54.0 REQUIRED COMPONENTS regex)
+find_package(Boost 1.54.0 REQUIRED COMPONENTS regex program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # Path to the IBM ViaVoice Text-to-Speech SDK include file (eci.h).
@@ -35,5 +35,6 @@ add_executable(speech_server
 target_link_libraries(speech_server
     ${ALSA_LIBRARY}
     ${Boost_REGEX_LIBRARIES}
+    ${Boost_PROGRAM_OPTIONS_LIBRARIES}
     ${CMAKE_DL_LIBS}
 )

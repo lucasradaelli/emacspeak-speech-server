@@ -15,6 +15,7 @@
 #ifndef SPEECH_SERVER_H_
 #define SPEECH_SERVER_H_
 
+#include <stdexcept>
 #include <tuple>
 
 #include "audio_manager.h"
@@ -45,6 +46,12 @@ class SpeechServer {
   char read_buffer_[4096];
   std::size_t buffer_size_ = 0;
   std::size_t buffer_start_;
+};
+
+// Irrecoverable error in speech server.
+class SpeechServerError : public std::runtime_error {
+ public:
+  explicit SpeechServerError(const std::string& arg) : runtime_error(arg) {}
 };
 
 #endif  // SPEECH_SERVER_H_

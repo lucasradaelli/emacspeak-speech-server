@@ -17,6 +17,7 @@
 #include <cerrno>
 #include <cstdio>
 #include <iostream>
+#include <system_error>
 
 #include <poll.h>
 #include <unistd.h>
@@ -100,7 +101,7 @@ int SpeechServer::MainLoop() {
         // Interrupted system call, try again.
         continue;
       }
-      throw;  // TODO: make a proper exception
+      throw std::system_error(errno, std::system_category());
     }
 
     // If there was any audio tasks enqueued and the sound output is ready,

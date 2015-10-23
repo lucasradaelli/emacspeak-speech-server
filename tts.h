@@ -57,11 +57,6 @@ class TTS {
   TTS(AudioManager* audio, const Options& options = Options());
   ~TTS();
 
-  // Dynamically loads the IBM Text-to-Speech library in memory. It must be
-  // called before attempting to use this class. It will throw an exception if
-  // it fails to open the library or to load any of its symbols.
-  static bool InitECI();
-
   // Initializes a new speech task if none is available, then returns it.
   // Each task defines a packet of instructions that will control the TTS
   // library to synthesize a piece of audio output. This method implicitly

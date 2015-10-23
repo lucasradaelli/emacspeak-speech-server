@@ -26,11 +26,6 @@ using std::vector;
 
 constexpr char TTS::kEciLibraryName[];
 
-bool TTS::InitECI() {
-  ECI::Init(kEciLibraryName);
-  return true;
-}
-
 TTS::TTS(AudioManager* audio, const Options &options)
     : audio_(audio) {
   lang_switcher_.reset(new LangSwitcher(ECI::GetAvailableLanguages()));

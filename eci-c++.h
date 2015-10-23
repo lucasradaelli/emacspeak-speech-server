@@ -31,7 +31,10 @@ class ECI {
  public:
   using Callback = std::function<ECICallbackReturn(long)>;
 
-  static void Init(const char* library_path);
+  // Dynamically loads the IBM Text-to-Speech library.
+  // This method must be called before instantiating this class. It throws an
+  // exception if it fails to open the library or to load any of its symbols.
+  static void Init(const std::string& library_path);
 
   ECI();
   ECI(ECILanguageDialect language);

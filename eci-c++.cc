@@ -65,8 +65,8 @@ static void LoadSymbol(void* handle, Type** dest, const char* name)  {
   }
 }
 
-void ECI::Init(const char* library_path) {
-  lib_.handle = dlopen(library_path, RTLD_LAZY);
+void ECI::Init(const std::string& library_path) {
+  lib_.handle = dlopen(library_path.c_str(), RTLD_LAZY);
   if (lib_.handle == nullptr) {
     throw ECIError(-1, dlerror());
   }
