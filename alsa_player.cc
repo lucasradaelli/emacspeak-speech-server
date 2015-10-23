@@ -95,11 +95,6 @@ int AlsaPlayer::GetPollEvents(struct pollfd* fds, int nfds) const {
   return revents;
 }
 
-void AlsaPlayer::Interrupt() {
-  snd_pcm_drop(pcm_);
-  snd_pcm_prepare(pcm_);
-}
-
 std::size_t AlsaPlayer::Play(int count) {
   std::size_t result = 0;
   char* data = buffer_.get();
@@ -122,6 +117,7 @@ std::size_t AlsaPlayer::Play(int count) {
         // TODO: Do not block on ALSA.
         snd_pcm_wait(pcm_, 1000);
       }
+      idle_ = false;
       count -= r;
       result += r;
       data += r * frame_size_;
@@ -144,6 +140,15 @@ void AlsaPlayer::Resume() {
   snd_pcm_pause(pcm_, false);
 }
 
+void AlsaPlayer::Idle() {
+  idle_ = true;
+}
+
+void AlsaPlayer::Interrupt() {
+  snd_pcm_drop(pcm_);
+  snd_pcm_prepare(pcm_);
+}
+
 void AlsaPlayer::RecoverFromUnderrun() {
   snd_pcm_status_t* status;
   snd_pcm_status_alloca(&status);
@@ -162,14 +167,16 @@ void AlsaPlayer::RecoverFromUnderrun() {
     throw AlsaError(sstr.str(), -EPIPE);
   }
 
-  struct timeval now, diff, tstamp;
-  gettimeofday(&now, 0);
-  snd_pcm_status_get_trigger_tstamp(status, &tstamp);
-  timersub(&now, &tstamp, &diff);
+  if (!idle_) {
+    struct timeval now, diff, tstamp;
+    gettimeofday(&now, 0);
+    snd_pcm_status_get_trigger_tstamp(status, &tstamp);
+    timersub(&now, &tstamp, &diff);
 
-  std::cerr << "AlsaPlayer: Sound buffer underrun ("
-            << (diff.tv_sec * 1000 + diff.tv_usec / 1000.0)
-            << "ms)" << std::endl;
+    std::cerr << "AlsaPlayer: Sound buffer underrun ("
+              << (diff.tv_sec * 1000 + diff.tv_usec / 1000.0) << "ms)"
+              << std::endl;
+  }
 
   if ((error = snd_pcm_prepare(pcm_)) < 0) {
     throw AlsaError("Failed to recover from underrun", error);

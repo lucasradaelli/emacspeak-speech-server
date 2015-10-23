@@ -48,6 +48,12 @@ class AlsaPlayer {
   void Drain();
   void Pause();
   void Resume();
+
+  // Sets the end of a segment of audio, informing to the player that there
+  // will be no more audio for awhile and that an eventual underrun is
+  // expected.
+  void Idle();
+
   void Interrupt();
 
  private:
@@ -60,6 +66,7 @@ class AlsaPlayer {
   snd_pcm_uframes_t buffer_size_ = 0;
   snd_pcm_uframes_t period_size_ = 0;
   std::size_t frame_size_ = 0;
+  bool idle_ = false;
 
   std::unique_ptr<char[]> buffer_;
 };

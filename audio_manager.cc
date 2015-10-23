@@ -34,14 +34,18 @@ void AudioManager::Run() {
   AlsaPlayer* player = player_.get();
   AudioTask* task = queue_.front().get();
 
-  if (task->Run(player) == AudioTask::FINISHED) {
-    task->EndTask(player, true);
-    queue_.pop();
+  if (task->Run(player) == AudioTask::CONTINUE) {
+    return;
+  }
 
-    if (!queue_.empty()) {
-      AudioTask* next_task = queue_.front().get();
-      next_task->StartTask(player);
-    }
+  task->EndTask(player, true);
+  queue_.pop();
+
+  if (queue_.empty()) {
+    player->Idle();
+  } else {
+    AudioTask* next_task = queue_.front().get();
+    next_task->StartTask(player);
   }
 }
 
