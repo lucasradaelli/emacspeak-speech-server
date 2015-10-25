@@ -166,3 +166,36 @@ bool TtsSetPunctuationsCommand::Run(const StatementInfo& cmd,
   ctx.server_state->SetPunctuationMode(punctuation_mode);
   return true;
 }
+
+bool TtsSyncStateCommand::Run(const StatementInfo& cmd,
+                              const CommandContext& ctx) {
+  if (cmd.arguments.size() != 5) {
+    return false;
+  }
+
+  const string mode = cmd.arguments[0];
+  const int speech_rate = std::stoi(cmd.arguments[4]);
+
+  TextFormatter::PunctuationMode punctuation_mode;
+  if (mode == "all") {
+    punctuation_mode = TextFormatter::ALL;
+  } else if (mode == "some") {
+    punctuation_mode = TextFormatter::SOME;
+  } else if (mode == "none") {
+    punctuation_mode = TextFormatter::NONE;
+  } else {
+    return false;
+  }
+
+  if (speech_rate <= 0) {
+    return false;
+  }
+
+  ctx.server_state->SetPunctuationMode(punctuation_mode);
+  // TODO: set capitalize
+  // TODO: set allcaps-beep
+  // TODO: set split-caps
+  ctx.tts->SetSpeechRate(speech_rate);
+
+  return true;
+}

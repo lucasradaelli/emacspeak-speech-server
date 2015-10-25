@@ -125,4 +125,10 @@ class TtsSetPunctuationsCommand : public Command {
   bool Run(const StatementInfo& cmd, const CommandContext& ctx) override;
 };
 
+class TtsSyncStateCommand : public Command {
+ public:
+  TtsSyncStateCommand() = default;
+  bool Run(const StatementInfo& cmd, const CommandContext& ctx) override;
+};
+
 #endif  // COMMANDS_H_

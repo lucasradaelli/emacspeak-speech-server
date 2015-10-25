@@ -37,6 +37,8 @@ CommandRegistry::CommandRegistry() {
       unique_ptr<Command>(new TtsSetSpeechRateCommand());
   commands_map_["tts_set_punctuations"] =
       unique_ptr<Command>(new TtsSetPunctuationsCommand());
+  commands_map_["tts_sync_state"] =
+      unique_ptr<Command>(new TtsSyncStateCommand());
 }
 
 Command* CommandRegistry::GetCommand(const std::string& command_name) {
