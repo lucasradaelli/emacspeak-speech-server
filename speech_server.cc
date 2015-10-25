@@ -98,12 +98,10 @@ int SpeechServer::MainLoop() {
           cout << "invalid command\n";
           continue;
         }
-        if (!statement->arguments.empty()) {
-          *server_state_.GetMutableLastArgs() = statement->arguments[0];
-        } else {
-          server_state_.GetMutableLastArgs()->clear();
-        }
-        command->Run(tts_, &server_state_);
+        CommandContext context;
+        context.tts = tts_;
+        context.server_state = &server_state_;
+        command->Run(*statement, context);
       }
     }
   }

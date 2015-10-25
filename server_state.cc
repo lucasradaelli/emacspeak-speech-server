@@ -20,9 +20,7 @@
 using std::string;
 
 ServerState::ServerState(AudioManager* audio)
-    : audio_(audio),
-      last_args_(new string()),
-      text_formatter_(new ECITextFormatter()) {}
+    : audio_(audio), text_formatter_(new ECITextFormatter()) {}
 
 void ServerState::ClearQueue() {
   if (queue_.size() == 0) {

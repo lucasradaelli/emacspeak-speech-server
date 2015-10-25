@@ -28,10 +28,6 @@ class ServerState {
   explicit ServerState(AudioManager* audio);
   ~ServerState() = default;
 
-  std::string* GetMutableLastArgs() const { return last_args_.get(); }
-
-  const std::string& GetLastArgs() const { return *last_args_.get(); }
-
   AudioManager* audio() { return audio_; }
   std::queue<std::unique_ptr<AudioTask>>& queue() { return queue_; }
 
@@ -51,8 +47,6 @@ class ServerState {
  private:
   AudioManager* audio_;
   std::queue<std::unique_ptr<AudioTask>> queue_;
-
-  std::unique_ptr<std::string> last_args_;
 
   std::unique_ptr<TextFormatter> text_formatter_;
 
