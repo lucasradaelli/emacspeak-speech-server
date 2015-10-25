@@ -27,6 +27,7 @@ add_executable(speech_server
     command_generator.cc command_generator.h
     commands.cc commands.h
     eci-c++.cc eci-c++.h
+    input_parser.cc input_parser.h
     server_state.cc server_state.h
     speech_server.cc speech_server.h
     text_formatter.cc text_formatter.h

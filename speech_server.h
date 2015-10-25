@@ -20,6 +20,7 @@
 
 #include "audio_manager.h"
 #include "command_generator.h"
+#include "input_parser.h"
 #include "tts.h"
 #include "server_state.h"
 
@@ -33,19 +34,12 @@ class SpeechServer {
 
   int MainLoop();
 
-  std::tuple<std::string, std::string> ProcessInput();
-
  private:
-  std::string ReadLine();
-
   AudioManager* audio_;
   TTS* tts_;
   ServerState server_state_;
+  InputParser input_parser_;
   std::unique_ptr<CommandRegistry> cmd_registry_;
-
-  char read_buffer_[4096];
-  std::size_t buffer_size_ = 0;
-  std::size_t buffer_start_;
 };
 
 // Irrecoverable error in speech server.
