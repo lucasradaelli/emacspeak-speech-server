@@ -14,97 +14,210 @@
 
 #include "input_parser.h"
 
-#include <unistd.h>
+#include <algorithm>
+#include <sstream>
 
-namespace {
-
-void SkipWhiteSpace(char** buffer) {
-  while (**buffer == '\n' || isspace(**buffer)) {
-    ++*buffer;
-  }
-  return;
+// Returns whether the given character is a valid word character.
+static bool IsWordChar(int c) {
+  return std::isalnum(c) ||
+         (std::ispunct(c) && c != ' ' && c != '"' && c != ';' && c != '[' &&
+          c != ']' && c != '\\' && c != '{' && c != '}');
 }
 
-std::string GetWordToken(char** buffer) {
-  std::string w_token;
-  while (**buffer != EOF && !isspace(**buffer)) {
-    w_token.push_back(**buffer);
-    ++*buffer;
-  }
+// InputParser
 
-  return w_token;
+InputParser::InputParser() : pos_(buffer_.begin()), end_(buffer_.end()) {
+  Reset();
 }
 
-std::string GetBracedToken(char** buffer) {
-  std::string b_token;
-  // Ignores the first value -- it is the {.
-  ++*buffer;
-  while (**buffer != '}' && **buffer != EOF) {
-    b_token.push_back(**buffer);
-    ++*buffer;
-  }
-  if (**buffer == '}') {
-    ++*buffer;
+InputParser::~InputParser() {}
+
+void InputParser::Feed(const char* input, std::size_t input_length) {
+  // If pos_ is not at the start of the buffer, move the rest of the text back
+  // to the beginning of the buffer.
+  if (pos_ > buffer_.begin()) {
+    std::copy(pos_, end_, buffer_.begin());
+    buffer_.resize(end_ - pos_);
   }
 
-  return b_token;
+  // Append the new input to the end of the buffer.
+  buffer_.append(input, input_length);
+  pos_ = buffer_.begin();
+  end_ = buffer_.end();
 }
 
-std::string GetToken(char** buffer) {
-  SkipWhiteSpace(buffer);
+std::unique_ptr<StatementInfo> InputParser::Parse() {
+  // Keeps parsing the input buffer until there is a complete statement ready
+  // or it reaches the end of the buffer.
+  while (!statement_done_ && pos_ < end_) {
+    (this->*rules_.top())();
+  }
 
-  std::string token;
-  if (**buffer == '{') {
-    token = GetBracedToken(buffer);
+  // It there is a statement, return it.
+  if (statement_done_) {
+    statement_done_ = false;
+    return std::move(statement_);
   } else {
-    token = GetWordToken(buffer);
+    return nullptr;
   }
-  return token;
 }
 
-}  // namespace
+void InputParser::Reset() {
+  decltype(rules_) empty;
+  std::swap(rules_, empty);
+  Push(&InputParser::Statement);
+}
 
-InputParser::InputParser() {}
+void InputParser::Push(InputParser::Rule rule) { rules_.push(rule); }
+void InputParser::Pop() { rules_.pop(); }
 
-std::string InputParser::ReadLine() {
-  std::string line;
-  if (buffer_size_ > 0) {
-    // If the buffer size is greater than zero, this means that there is still
-    // data in our internal buffer. this can happen, for example, if we've read
-    // two lines of input at once in the previous call to ReadLine. Since we
-    // return only one line per call, we need to check the buffer to see if
-    // there is still data left to be processed.
-    for (size_t i = buffer_start_; i < buffer_size_; ++i) {
-      line.push_back(buffer_[i]);
-      if (buffer_[i] == '\n') {
-        // End of line. Update the buffer information and return the line.
-        buffer_start_ = i + 1;
-        buffer_size_ = buffer_size_ - buffer_start_ - 1 - i;
-        return line;
-      }
+void InputParser::Continue(InputParser::Rule rule) {
+  Pop();
+  Push(rule);
+}
+
+void InputParser::Unexpected(const std::string& context) {
+  auto word_pos = pos_;
+  if (IsWordChar(*pos_)) {
+    while (pos_ < end_ && IsWordChar(*pos_)) {
+      ++pos_;
+    }
+  } else {
+    ++pos_;
+  }
+  std::string near(word_pos, pos_);
+  while (pos_ < end_ && *pos_ != '\n') {
+    ++pos_;
+  }
+  Reset();
+  throw InputParsingError(context, near);
+}
+
+// Statement ::= Command ArgumentList EOL
+void InputParser::Statement() {
+  // Skip any spaces before the first token.
+  while (pos_ < end_ && std::isspace(*pos_)) ++pos_;
+
+  if (pos_ < end_) {
+    // A statement starts with a command, which starts with a letter.
+    if (std::isalpha(*pos_)) {
+      statement_.reset(new StatementInfo());
+      Continue(&InputParser::Command);
+    } else {
+      Unexpected("Statement");
     }
   }
-  return line;
 }
 
-std::tuple<std::string, std::string> InputParser::ProcessInput(
-    const char* input, std::size_t input_length) {
-  buffer_.append(input, input_length);
-  buffer_size_ += input_length;
-
-  std::string command_name, args = "";
-  // Read the next input line.
-  std::string line = ReadLine();
-  if (line.empty()) {
-    return std::make_tuple("", "");
-  }
-  // Parses the line into command name and args.
-  char* start = &line[0];
-
-  command_name = GetToken(&start);
-  if (*start != '\n' && *start != '\0') {
-    args = GetToken(&start);
+// Command ::= WordChar+
+void InputParser::Command() {
+  // Extract a contiguous set of word chars for the command.
+  auto word_pos = pos_;
+  while (pos_ < end_ && IsWordChar(*pos_)) {
+    ++pos_;
   }
 
-  return std::make_tuple(command_name, args);
+  // Set the statement command.
+  statement_->command.append(word_pos, pos_);
+
+  // If a non-word char was found, start the argument list, but skip any
+  // spaces first.
+  if (pos_ < end_) {
+    Pop();
+    Push(&InputParser::ArgumentList);
+    Push(&InputParser::Spaces);
+  }
+}
+
+// ArgumentList ::= Argument Spaces ArgumentList
+//                | BracedString Spaces ArgumentList
+void InputParser::ArgumentList() {
+  if (std::isalnum(*pos_)) {
+    statement_->arguments.emplace_back();
+    Push(&InputParser::Argument);
+  } else if (*pos_ == '{') {
+    ++pos_;
+    statement_->arguments.emplace_back();
+    Push(&InputParser::BracedString);
+  } else if (*pos_ == '\n') {
+    ++pos_;
+    statement_done_ = true;
+    Continue(&InputParser::Statement);
+  } else {
+    Unexpected("ArgumentList");
+  }
+}
+
+// Argument ::= WordChar+
+void InputParser::Argument() {
+  // Extract a contiguous set of word chars for the argument.
+  auto word_pos = pos_;
+  while (pos_ < end_ && IsWordChar(*pos_)) {
+    ++pos_;
+  }
+
+  // Append to the last argument.
+  statement_->arguments.back().append(word_pos, pos_);
+
+  // If a non-word char was found, start start a new argument, skipping any
+  // spaces.
+  if (pos_ < end_) {
+    Continue(&InputParser::Spaces);
+  }
+}
+
+// BracedString ::= '{' char* '}'
+void InputParser::BracedString() {
+  auto start = pos_;
+  while (pos_ < end_ && *pos_ != '}') ++pos_;
+
+  statement_->arguments.back().append(start, pos_);
+
+  if (pos_ < end_) {
+    ++pos_;  // Consume the '}'.
+    Continue(&InputParser::Spaces);
+  }
+}
+
+// Spaces ::= ' '*
+void InputParser::Spaces() {
+  while (pos_ < end_) {
+    if (*pos_ == '\n' || !std::isspace(*pos_)) {
+      Pop();
+      break;
+    }
+    ++pos_;
+  }
+}
+
+// StatementInfo
+
+bool StatementInfo::operator==(const StatementInfo& o) {
+  return command == o.command && arguments == o.arguments;
+}
+
+bool StatementInfo::operator!=(const StatementInfo& o) {
+  return !operator==(o);
+}
+
+std::ostream& operator<<(std::ostream& o, const StatementInfo& s) {
+  o << "StatementInfo(\"" << s.command << "\", {";
+  for (unsigned i = 0; i < s.arguments.size(); ++i) {
+    o << ","+(i==0) << " \"" << s.arguments[i] << "\"";
+  }
+  return o << " })";
+}
+
+// InputParsingError
+
+InputParsingError::InputParsingError(const std::string& context,
+                                     const std::string& near)
+    : runtime_error(GenerateMessage(context, near)) {}
+
+std::string InputParsingError::GenerateMessage(const std::string& context,
+                                               const std::string& near) {
+  std::ostringstream sstr;
+  sstr << "Failed to parse input: In context '" << context << "', near '"
+       << near << "'.";
+  return sstr.str();
 }

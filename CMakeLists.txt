@@ -7,6 +7,9 @@ project(emacspeak-speech-server CXX)
 # Enable the C++11 standard in the compiler.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
+# Enable testing.
+include(CTest)
+
 # Libraries.
 find_package(ALSA REQUIRED)
 
@@ -39,3 +42,9 @@ target_link_libraries(speech_server
     ${Boost_PROGRAM_OPTIONS_LIBRARIES}
     ${CMAKE_DL_LIBS}
 )
+
+# Tests.
+if (BUILD_TESTING)
+  add_executable(input_parser_test input_parser_test.cc input_parser.cc)
+  add_test(NAME InputParser COMMAND input_parser_test)
+endif()

@@ -28,6 +28,14 @@ using std::cin;
 using std::cout;
 using std::string;
 
+SpeechServer::SpeechServer(AudioManager* audio, TTS* tts)
+    : audio_(audio),
+      tts_(tts),
+      server_state_(audio_),
+      cmd_registry_(new CommandRegistry()) {}
+
+SpeechServer::~SpeechServer() = default;
+
 int SpeechServer::MainLoop() {
   for (;;) {
     // Always expect input from the stdin descriptor, to process commands.
@@ -65,6 +73,7 @@ int SpeechServer::MainLoop() {
 
     // If there was an input event, possibly process a server command.
     if (fds[0].fd == STDIN_FILENO && fds[0].revents != 0) {
+      // Read the input waiting at the standard input.
       char buffer[4096];
       int size = read(STDIN_FILENO, buffer, sizeof(buffer));
 
@@ -78,19 +87,24 @@ int SpeechServer::MainLoop() {
         break;
       }
 
-      string command_name;
-      std::tie(command_name, *server_state_.GetMutableLastArgs()) =
-          input_parser_.ProcessInput(buffer, size);
-      if (command_name.empty()) {
-        continue;
+      // Feed the input to the parser.
+      input_parser_.Feed(buffer, size);
+
+      // Process any complete statements from the input.
+      while (auto statement = input_parser_.Parse()) {
+        cout << *statement << "\n";
+        Command* command = cmd_registry_->GetCommand(statement->command);
+        if (command == nullptr) {
+          cout << "invalid command\n";
+          continue;
+        }
+        if (!statement->arguments.empty()) {
+          *server_state_.GetMutableLastArgs() = statement->arguments[0];
+        } else {
+          server_state_.GetMutableLastArgs()->clear();
+        }
+        command->Run(tts_, &server_state_);
       }
-      cout << command_name << "\n";
-      Command* command = cmd_registry_->GetCommand(command_name);
-      if (command == nullptr) {
-        cout << "invalid command\n";
-        continue;
-      }
-      command->Run(tts_, &server_state_);
     }
   }
 

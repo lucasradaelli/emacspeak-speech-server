@@ -15,7 +15,9 @@
 #ifndef SPEECH_SERVER_H_
 #define SPEECH_SERVER_H_
 
+#include <memory>
 #include <stdexcept>
+#include <string>
 #include <tuple>
 
 #include "audio_manager.h"
@@ -26,11 +28,8 @@
 
 class SpeechServer {
  public:
-  SpeechServer(AudioManager* audio, TTS* tts)
-      : audio_(audio), tts_(tts), server_state_(audio_) {
-    cmd_registry_.reset(new CommandRegistry());
-  }
-  ~SpeechServer() = default;
+  SpeechServer(AudioManager* audio, TTS* tts);
+  ~SpeechServer();
 
   int MainLoop();
 
