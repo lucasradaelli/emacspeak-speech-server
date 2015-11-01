@@ -68,3 +68,12 @@ string ECITextFormatter::Format(const string& text,
 
   return output;
 }
+
+string ECITextFormatter::FormatSingleChar(const char chr) {
+  string letter_pitch;
+  if (isupper(chr)) {
+    letter_pitch = "`vb80 ";
+  }
+  const string msg = letter_pitch + "`ts2 " + chr + " `ts0";
+  return msg;
+}

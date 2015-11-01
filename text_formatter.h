@@ -28,6 +28,10 @@ class TextFormatter {
   virtual std::string Format(const std::string& text,
                              const PunctuationMode mode) = 0;
 
+  // Formats a single char to be spoken. Some speech engines apply a different
+  // emphasis, pitch or speed to pronounce a single letter.
+  virtual std::string FormatSingleChar(const char chr) = 0;
+
  protected:
   TextFormatter() = default;
 
@@ -56,6 +60,8 @@ class ECITextFormatter : public TextFormatter {
 
   std::string Format(const std::string& text,
                      const PunctuationMode punctuation_mode) override;
+
+  std::string FormatSingleChar(const char chr) override;
 };
 
 #endif  // TEXT_FORMATTER_H_

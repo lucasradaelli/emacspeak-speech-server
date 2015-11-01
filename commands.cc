@@ -38,12 +38,8 @@ bool LCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
   if (cmd.arguments.size() != 1) {
     return false;
   }
-  const string args = cmd.arguments[0];
-  string letter_pitch;
-  if (isupper(args[0])) {
-    letter_pitch = "`vb80 ";
-  }
-  const string msg = letter_pitch + "`ts2 " + args + " `ts0";
+  const string msg =
+      ctx.server_state->text_formatter()->FormatSingleChar(cmd.arguments[0][0]);
   return ctx.tts->Say(msg) && ctx.tts->SubmitTask();
 }
 
