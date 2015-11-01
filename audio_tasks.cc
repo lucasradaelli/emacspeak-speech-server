@@ -15,10 +15,21 @@
 #include "audio_tasks.h"
 
 #include <cmath>
+#include <sstream>
+
+using std::string;
+using std::vector;
+
+namespace {
+
+// Default program to play the wav files.
+static const char kDefaultPlayProgram[] = "aplay";
+
+}  // namespace
 
 // AudioTask
 
-std::vector<pollfd> AudioTask::GetPollDescriptors(AlsaPlayer* player) const {
+vector<pollfd> AudioTask::GetPollDescriptors(AlsaPlayer* player) const {
   return player->GetPollDescriptors();
 }
 
@@ -30,7 +41,7 @@ int AudioTask::GetPollEvents(AlsaPlayer* player, pollfd* fds, int nfds) const {
 
 SpeechTask::SpeechTask(ECI* eci) : eci_(eci) {}
 
-void SpeechTask::AddText(const std::string& text) {
+void SpeechTask::AddText(const string& text) {
   ops_.push_back([=](ECI* eci) { eci->AddText(text); });
 }
 
@@ -77,4 +88,43 @@ AudioTask::TaskResult ToneTask::Run(AlsaPlayer* player) {
 
   player->Play(pos);
   return t_ < duration_samples_ ? CONTINUE : FINISHED;
+}
+
+void SoundTask::StartTask(AlsaPlayer* player) {
+  std::ostringstream command;
+  command << kDefaultPlayProgram << " " << file_path_;
+  process_ = popen(command.str().c_str(), "w");
+  if (process_ == nullptr) {
+    // todo: implement correct error handling.
+    return;
+  }
+  fd_ = fileno(process_);
+  return;
+}
+
+void SoundTask::EndTask(AlsaPlayer* player, bool finished) {
+  pclose(process_);
+  return;
+}
+
+vector<pollfd> SoundTask::GetPollDescriptors(AlsaPlayer* player) const {
+  vector<struct pollfd> fds(1);
+  fds[0].fd = fd_;
+  fds[0].events = POLLERR;
+  fds[0].revents = 0;
+  return fds;
+}
+
+int SoundTask::GetPollEvents(AlsaPlayer* player, pollfd* fds, int nfds) const {
+  unsigned short revents = 0;
+  for (int i = 0; i < nfds; ++i) {
+    if (fds[i].fd != fd_) continue;
+    // Waits for a POLLERR event -- this means that the external process has
+    // finished.
+    if (fds[i].revents == POLLERR) {
+      revents = fds[i].revents;
+      break;
+    }
+  }
+  return revents;
 }

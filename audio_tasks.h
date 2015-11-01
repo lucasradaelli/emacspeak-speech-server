@@ -118,4 +118,38 @@ class ToneTask : public AudioTask {
   unsigned int t_ = 0;
 };
 
+// Sound task.
+//
+// This class plays via an external process the given file.
+class SoundTask : public AudioTask {
+ public:
+  explicit SoundTask(const std::string& file_path) : file_path_(file_path) {}
+
+  // Starts the external process to play the file.
+  void StartTask(AlsaPlayer* player) override;
+
+
+  void EndTask(AlsaPlayer* player, bool finished) override;
+
+  // Run() will only be called when the poll descriptors for this task are
+  // returned. In this case, we wait for the external process to finish. For
+  // this reason, this task does not need to do anything in this method .
+  TaskResult Run(AlsaPlayer* player) override { return FINISHED; }
+
+  std::vector<struct pollfd> GetPollDescriptors(
+      AlsaPlayer* player) const override;
+
+  int GetPollEvents(AlsaPlayer* player, struct pollfd* fds, int nfds) const;
+
+ private:
+  // File path of the .wav file to be played.
+  std::string file_path_;
+
+  // FILE pointer to the external process running the aplay program.
+  FILE* process_;
+
+  // File descriptor of the external process, used for polling.
+  int fd_;
+};
+
 #endif  // AUDIO_TASKS_H_
