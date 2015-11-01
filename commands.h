@@ -100,6 +100,13 @@ class CCommand : public Command {
   bool Run(const StatementInfo& cmd, const CommandContext& ctx) override;
 };
 
+// Queues a file to be played.
+class ACommand : public Command {
+ public:
+  ACommand() = default;
+  bool Run(const StatementInfo& cmd, const CommandContext& ctx) override;
+};
+
 // Queues a message of type silence.
 class ShCommand : public Command {
  public:

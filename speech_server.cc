@@ -48,9 +48,9 @@ int SpeechServer::MainLoop() {
     const bool audio_output_pending = audio_->pending();
 
     if (audio_output_pending) {
-      auto alsa_fds = audio_->GetPollDescriptors();
-      std::copy(std::make_move_iterator(alsa_fds.begin()),
-                std::make_move_iterator(alsa_fds.end()),
+      auto audio_fds = audio_->GetPollDescriptors();
+      std::copy(std::make_move_iterator(audio_fds.begin()),
+                std::make_move_iterator(audio_fds.end()),
                 std::back_inserter(fds));
     }
 
