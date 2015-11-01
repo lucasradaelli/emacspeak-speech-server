@@ -67,6 +67,8 @@ int main() {
       "command_two four {five five} { six six }  \n",
       {StatementInfo{"command_one", {"one one", "two", "three"}},
        StatementInfo{"command_two", {"four", "five five", " six six "}}});
+  CheckParser("a /tmp/somefile.wav \n",
+              {StatementInfo{"a", {"/tmp/somefile.wav"}}});
 
   return !good;
 }

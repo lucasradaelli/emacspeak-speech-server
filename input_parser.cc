@@ -132,7 +132,7 @@ void InputParser::Command() {
 // ArgumentList ::= Argument Spaces ArgumentList
 //                | BracedString Spaces ArgumentList
 void InputParser::ArgumentList() {
-  if (std::isalnum(*pos_)) {
+  if (std::isalnum(*pos_) || *pos_ == '/') {
     statement_->arguments.emplace_back();
     Push(&InputParser::Argument);
   } else if (*pos_ == '{') {
@@ -203,7 +203,7 @@ bool StatementInfo::operator!=(const StatementInfo& o) {
 std::ostream& operator<<(std::ostream& o, const StatementInfo& s) {
   o << "StatementInfo(\"" << s.command << "\", {";
   for (unsigned i = 0; i < s.arguments.size(); ++i) {
-    o << ","+(i==0) << " \"" << s.arguments[i] << "\"";
+    o << "," + (i == 0) << " \"" << s.arguments[i] << "\"";
   }
   return o << " })";
 }
