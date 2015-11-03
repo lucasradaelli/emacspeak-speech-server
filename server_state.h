@@ -35,6 +35,9 @@ class ServerState {
 
   TextFormatter* text_formatter() { return text_formatter_.get(); }
 
+  bool verbose() const { return verbose_; }
+  void set_verbose(bool value) { verbose_ = value; }
+
   TextFormatter::PunctuationMode GetPunctuationMode() const {
     return punctuation_mode_;
   }
@@ -50,6 +53,7 @@ class ServerState {
 
   std::unique_ptr<TextFormatter> text_formatter_;
 
+  bool verbose_ = false;
   TextFormatter::PunctuationMode punctuation_mode_ = TextFormatter::ALL;
 };
 

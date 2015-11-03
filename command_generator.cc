@@ -44,9 +44,7 @@ CommandRegistry::CommandRegistry() {
 
 Command* CommandRegistry::GetCommand(const std::string& command_name) {
   if (commands_map_.find(command_name) == commands_map_.end()) {
-    std::cout << "not found in the registry\n";
     return nullptr;
   }
-  std::cout << "found in the registry\n";
   return commands_map_[command_name].get();
 }

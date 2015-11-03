@@ -91,20 +91,38 @@ int SpeechServer::MainLoop() {
       input_parser_.Feed(buffer, size);
 
       // Process any complete statements from the input.
-      while (auto statement = input_parser_.Parse()) {
-        cout << *statement << "\n";
-        Command* command = cmd_registry_->GetCommand(statement->command);
-        if (command == nullptr) {
-          cout << "invalid command\n";
-          continue;
-        }
-        CommandContext context;
-        context.tts = tts_;
-        context.server_state = &server_state_;
-        command->Run(*statement, context);
-      }
+      ProcessCommands();
     }
   }
 
   return 0;
+}
+
+void SpeechServer::ProcessCommands() {
+  for (;;) {
+    try {
+      // Try to parse the next pending command.
+      std::unique_ptr<StatementInfo> statement = input_parser_.Parse();
+      if (statement == nullptr) {
+        break;
+      }
+
+      Command* command = cmd_registry_->GetCommand(statement->command);
+
+      if (command != nullptr) {
+        CommandContext context;
+        context.tts = tts_;
+        context.server_state = &server_state_;
+        bool result = command->Run(*statement, context);
+
+        if (verbose()) {
+          std::cout << *statement << " :: Result: " << result << std::endl;
+        }
+      } else if (verbose()) {
+        std::cout << *statement << " :: No such command." << std::endl;
+      }
+    } catch (InputParsingError& error) {
+      std::cout << error.what() << std::endl;
+    }
+  }
 }

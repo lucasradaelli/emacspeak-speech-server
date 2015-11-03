@@ -33,7 +33,12 @@ class SpeechServer {
 
   int MainLoop();
 
+  bool verbose() const { return server_state_.verbose(); }
+  void set_verbose(bool value) { server_state_.set_verbose(value); }
+
  private:
+  void ProcessCommands();
+
   AudioManager* audio_;
   TTS* tts_;
   ServerState server_state_;

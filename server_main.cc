@@ -30,6 +30,7 @@ po::options_description GetOptionsDescription() {
   po::options_description options("Server options");
   options.add_options()
       ("help,h", "Display this help message.")
+      ("verbose", "Be verbose about what is happening.")
       ("eci-library", po::value<std::string>(),
        "Path to libibmeci.so library file to load.");
 
@@ -95,6 +96,11 @@ int main(int argc, char** argv) {
   // Run the speech server.
   try {
     SpeechServer speech_server(&audio, &tts);
+
+    if (args.count("verbose")) {
+      speech_server.set_verbose(true);
+    }
+
     speech_server.MainLoop();
   } catch (std::exception& e) {
     std::cerr << "Fatal error while running the speech server:\n"
