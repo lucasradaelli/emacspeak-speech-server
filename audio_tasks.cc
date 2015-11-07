@@ -94,41 +94,16 @@ AudioTask::TaskResult ToneTask::Run(AlsaPlayer* player) {
   return t_ < duration_samples_ ? CONTINUE : FINISHED;
 }
 
+// SoundTask
+
+SoundTask::SoundTask(const string& file_path) : file_path_(file_path) {}
+
 void SoundTask::StartTask(AlsaPlayer* player) {
   std::ostringstream command;
-  command << kDefaultPlayProgram << " " << file_path_;
-  process_ = popen(command.str().c_str(), "w");
-  if (process_ == nullptr) {
-    // todo: implement correct error handling.
-    return;
-  }
-  fd_ = fileno(process_);
-  return;
+  command << kDefaultPlayProgram << " " << file_path_ << " &";
+  std::system(command.str().c_str());
 }
 
-void SoundTask::EndTask(AlsaPlayer* player, bool finished) {
-  pclose(process_);
-  return;
-}
-
-vector<pollfd> SoundTask::GetPollDescriptors(AlsaPlayer* player) const {
-  vector<struct pollfd> fds(1);
-  fds[0].fd = fd_;
-  fds[0].events = POLLERR;
-  fds[0].revents = 0;
-  return fds;
-}
-
-int SoundTask::GetPollEvents(AlsaPlayer* player, pollfd* fds, int nfds) const {
-  unsigned short revents = 0;
-  for (int i = 0; i < nfds; ++i) {
-    if (fds[i].fd != fd_) continue;
-    // Waits for a POLLERR event -- this means that the external process has
-    // finished.
-    if (fds[i].revents == POLLERR) {
-      revents = fds[i].revents;
-      break;
-    }
-  }
-  return revents;
+AudioTask::TaskResult SoundTask::Run(AlsaPlayer* player) {
+  return FINISHED;
 }
