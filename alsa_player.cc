@@ -67,6 +67,10 @@ void AlsaPlayer::SetupPCM() {
   // Retrieve period and buffer sizes from ALSA.
   check(snd_pcm_hw_params_get_period_size(params, &period_size_, 0));
   check(snd_pcm_hw_params_get_buffer_size(params, &buffer_size_));
+
+  if (options_.verbose) {
+    std::cerr << GetAlsaPcmDump() << std::flush;
+  }
 }
 
 std::vector<struct pollfd> AlsaPlayer::GetPollDescriptors() const {
@@ -203,6 +207,20 @@ void AlsaPlayer::RecoverFromSuspend() {
   }
 
   std::cerr << "AlsaPlayer: Recovered from suspend." << std::endl;
+}
+
+std::string AlsaPlayer::GetAlsaPcmDump() {
+  snd_output_t* output = nullptr;
+  snd_output_buffer_open(&output);
+  snd_pcm_dump(pcm_, output);
+
+  char* buffer = nullptr;
+  std::size_t length = snd_output_buffer_string(output, &buffer);
+  std::string dump(buffer, length);
+
+  snd_output_close(output);
+
+  return dump;
 }
 
 std::string AlsaError::GenerateMessage(const std::string& arg, int code) {

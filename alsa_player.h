@@ -23,27 +23,44 @@
 #include <poll.h>
 #include <alsa/asoundlib.h>
 
+// PCM Audio Player using ALSA.
+//
+// This class is responsible for handling communication with the ALSA drivers.
 class AlsaPlayer {
  public:
+  // Player options.
   struct Options {
     Options() noexcept {}
 
+    // Whether to enable verbose output.
+    bool verbose = false;
+
+    // Which ALSA PCM device to open.
     std::string device = "default";
+
+    // Sample format to use.
     snd_pcm_format_t sample_format = SND_PCM_FORMAT_S16;
-    unsigned int sample_rate = 11025;
+
+    // Sample rate, in Hz.
+    unsigned int sample_rate = 11025;  // Hz
+
+    // Number of channels.
     unsigned int channels = 1;
   };
 
   AlsaPlayer(const Options& options = Options());
   virtual ~AlsaPlayer();
 
+  // Read-only accessors.
   snd_pcm_format_t sample_format() const { return options_.sample_format; }
   unsigned int sample_rate() const { return options_.sample_rate; }
   unsigned int period_size() const { return period_size_; }
   char* buffer() const { return buffer_.get(); }
 
+  // ALSA driver descriptors for polling.
   std::vector<struct pollfd> GetPollDescriptors() const;
   int GetPollEvents(struct pollfd *fds, int nfds) const;
+
   std::size_t Play(int count);
   void Drain();
   void Pause();
@@ -61,6 +78,9 @@ class AlsaPlayer {
   void RecoverFromUnderrun();
   void RecoverFromSuspend();
 
+  // Returns a string reporting the ALSA PCM configuration, for debugging.
+  std::string GetAlsaPcmDump();
+
   const Options options_;
   snd_pcm_t* pcm_ = nullptr;
   snd_pcm_uframes_t buffer_size_ = 0;
@@ -71,6 +91,7 @@ class AlsaPlayer {
   std::unique_ptr<char[]> buffer_;
 };
 
+// Exception thrown for ALSA errors.
 class AlsaError : public std::runtime_error {
  public:
   explicit AlsaError(const std::string& arg, int code)

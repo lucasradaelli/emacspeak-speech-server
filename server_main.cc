@@ -67,6 +67,8 @@ int main(int argc, char** argv) {
     return EXIT_SUCCESS;
   }
 
+  const bool verbose = args.count("verbose");
+
   // Initialize the ECI library.
   const std::string eci_library_path =
       args.count("eci-library") > 0 ? args["eci-library"].as<std::string>()
@@ -81,6 +83,7 @@ int main(int argc, char** argv) {
 
   // Initialize the ALSA player.
   AlsaPlayer::Options alsa_options;
+  alsa_options.verbose = verbose;
   if (args.count("devive")) {
     alsa_options.device = args["device"].as<std::string>();
   }
@@ -96,10 +99,7 @@ int main(int argc, char** argv) {
   // Run the speech server.
   try {
     SpeechServer speech_server(&audio, &tts);
-
-    if (args.count("verbose")) {
-      speech_server.set_verbose(true);
-    }
+    speech_server.set_verbose(verbose);
 
     speech_server.MainLoop();
   } catch (std::exception& e) {
