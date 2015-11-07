@@ -14,6 +14,7 @@
 
 #include "input_parser.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -70,5 +71,5 @@ int main() {
   CheckParser("a /tmp/somefile.wav \n",
               {StatementInfo{"a", {"/tmp/somefile.wav"}}});
 
-  return !good;
+  return good ? EXIT_SUCCESS : EXIT_FAILURE;
 }
