@@ -26,7 +26,9 @@ class TextFormatter {
   // representation,
   // adding tts control parameters to change intonation, etc.
   virtual std::string Format(const std::string& text,
-                             const PunctuationMode mode) = 0;
+                             const PunctuationMode mode, const bool split_caps,
+                             const bool capitalized,
+                             const bool allcaps_beep) = 0;
 
   // Formats a single char to be spoken. Some speech engines apply a different
   // emphasis, pitch or speed to pronounce a single letter.
@@ -36,10 +38,12 @@ class TextFormatter {
   TextFormatter() = default;
 
   using regex = boost::regex;
+  using RegexToReplaceStringContainer =
+      std::vector<std::pair<const regex*, std::string>>;
 
-  std::vector<std::pair<const regex*, std::string>> all_punctuation_;
-  std::vector<std::pair<const regex*, std::string>> some_punctuation_;
-  std::vector<std::pair<const regex*, std::string>> no_punctuation_;
+  RegexToReplaceStringContainer all_punctuation_;
+  RegexToReplaceStringContainer some_punctuation_;
+  RegexToReplaceStringContainer no_punctuation_;
 
   static const regex star_regex_;
   static const regex dash_regex_;
@@ -47,10 +51,14 @@ class TextFormatter {
   static const regex left_paren_regex_;
   static const regex right_paren_regex_;
   static const regex at_regex_;
-  static const regex all_punctuation_regex_;
+  static const regex all_punctuation_with_pause_regex_;
 
   static const regex some_punctuation_remove_list_;
   static const regex some_punctuation_pause_list_;
+
+  static const regex none_punctuation_removal_list_;
+
+  static const regex capitalize_regex_;
 };
 
 class ECITextFormatter : public TextFormatter {
@@ -59,7 +67,9 @@ class ECITextFormatter : public TextFormatter {
   virtual ~ECITextFormatter() = default;
 
   std::string Format(const std::string& text,
-                     const PunctuationMode punctuation_mode) override;
+                     const PunctuationMode punctuation_mode,
+                     const bool split_caps, const bool capitalized,
+                     const bool allcaps_beep) override;
 
   std::string FormatSingleChar(const char chr) override;
 };

@@ -38,13 +38,30 @@ class ServerState {
   bool verbose() const { return verbose_; }
   void set_verbose(bool value) { verbose_ = value; }
 
-  TextFormatter::PunctuationMode GetPunctuationMode() const {
+  TextFormatter::PunctuationMode punctuation_mode() const {
     return punctuation_mode_;
   }
-
-  void SetPunctuationMode(
+  void set_punctuation_mode(
       const TextFormatter::PunctuationMode punctuation_mode) {
     punctuation_mode_ = punctuation_mode;
+  }
+
+  bool tts_split_caps() const { return tts_split_caps_; }
+
+  void set_tts_split_caps(const bool tts_split_caps) {
+    tts_split_caps_ = tts_split_caps;
+  }
+
+  bool tts_capitalize() const { return tts_capitalize_; }
+
+  void set_tts_capitalize(const bool tts_capitalize) {
+    tts_capitalize_ = tts_capitalize;
+  }
+
+  bool tts_allcaps_beep() const { return tts_allcaps_beep_; }
+
+  void set_tts_allcaps_beep(const bool tts_allcaps_beep) {
+    tts_allcaps_beep_ = tts_allcaps_beep;
   }
 
  private:
@@ -55,6 +72,18 @@ class ServerState {
 
   bool verbose_ = false;
   TextFormatter::PunctuationMode punctuation_mode_ = TextFormatter::ALL;
+
+  // Set state of split caps processing. Set this to true to
+  // speak mixed-case (AKA Camel Case) identifiers.
+  bool tts_split_caps_ = false;
+
+  // Set this to true to indicate capitalization via a voice  pitch.
+  bool tts_capitalize_ = false;
+
+  //         Setting this to true produces  a high-pitched beep when speaking
+  //         words that are in
+  //  all-caps, e.g. abbreviations.
+  bool tts_allcaps_beep_ = false;
 };
 
 #endif  // SERVER_STATE_H_
