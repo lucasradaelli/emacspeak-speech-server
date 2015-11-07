@@ -91,6 +91,15 @@ bool ACommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
   return true;
 }
 
+bool PCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
+  if (cmd.arguments.size() != 1) {
+    return false;
+  }
+  std::unique_ptr<SoundTask> task(new SoundTask(cmd.arguments[0]));
+  ctx.server_state->audio()->Push(std::move(task));
+  return true;
+}
+
 bool DCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
   while (!ctx.server_state->queue().empty()) {
     auto& task = ctx.server_state->queue().front();

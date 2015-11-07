@@ -107,6 +107,13 @@ class ACommand : public Command {
   bool Run(const StatementInfo& cmd, const CommandContext& ctx) override;
 };
 
+// Plays an audio file immediately.
+class PCommand : public Command {
+ public:
+  PCommand() = default;
+  bool Run(const StatementInfo& cmd, const CommandContext& ctx) override;
+};
+
 // Queues a message of type silence.
 class ShCommand : public Command {
  public:
