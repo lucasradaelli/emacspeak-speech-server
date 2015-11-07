@@ -67,7 +67,9 @@ bool QCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
     return false;
   }
   string processed_message = ctx.server_state->text_formatter()->Format(
-      cmd.arguments[0], ctx.server_state->punctuation_mode());
+      cmd.arguments[0], ctx.server_state->punctuation_mode(),
+      ctx.server_state->tts_split_caps(), ctx.server_state->tts_capitalize(),
+      ctx.server_state->tts_allcaps_beep());
   ctx.tts->Say(processed_message);
   ctx.server_state->queue().push(ctx.tts->ReleaseTask());
   return true;
