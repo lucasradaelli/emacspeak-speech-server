@@ -67,7 +67,7 @@ bool QCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
     return false;
   }
   string processed_message = ctx.server_state->text_formatter()->Format(
-      cmd.arguments[0], ctx.server_state->GetPunctuationMode());
+      cmd.arguments[0], ctx.server_state->punctuation_mode());
   ctx.tts->Say(processed_message);
   ctx.server_state->queue().push(ctx.tts->ReleaseTask());
   return true;
@@ -168,7 +168,52 @@ bool TtsSetPunctuationsCommand::Run(const StatementInfo& cmd,
     return false;
   }
 
-  ctx.server_state->SetPunctuationMode(punctuation_mode);
+  ctx.server_state->set_punctuation_mode(punctuation_mode);
+  return true;
+}
+
+bool TtsSplitCapsCommand::Run(const StatementInfo& cmd,
+                              const CommandContext& ctx) {
+  if (cmd.arguments.size() != 1) {
+    return false;
+  }
+
+  const string& flag = cmd.arguments[0];
+  if (flag != "1" && flag != "0") {
+    return false;
+  }
+
+  ctx.server_state->set_tts_split_caps(flag == "1" ? true : false);
+  return true;
+}
+
+bool TtsCapitalizeCommand::Run(const StatementInfo& cmd,
+                               const CommandContext& ctx) {
+  if (cmd.arguments.size() != 1) {
+    return false;
+  }
+
+  const string& flag = cmd.arguments[0];
+  if (flag != "1" && flag != "0") {
+    return false;
+  }
+
+  ctx.server_state->set_tts_capitalize(flag == "1" ? true : false);
+  return true;
+}
+
+bool TtsAllcapsBeepCommand::Run(const StatementInfo& cmd,
+                                const CommandContext& ctx) {
+  if (cmd.arguments.size() != 1) {
+    return false;
+  }
+
+  const string& flag = cmd.arguments[0];
+  if (flag != "1" && flag != "0") {
+    return false;
+  }
+
+  ctx.server_state->set_tts_allcaps_beep(flag == "1" ? true : false);
   return true;
 }
 
@@ -196,7 +241,7 @@ bool TtsSyncStateCommand::Run(const StatementInfo& cmd,
     return false;
   }
 
-  ctx.server_state->SetPunctuationMode(punctuation_mode);
+  ctx.server_state->set_punctuation_mode(punctuation_mode);
   // TODO: set capitalize
   // TODO: set allcaps-beep
   // TODO: set split-caps

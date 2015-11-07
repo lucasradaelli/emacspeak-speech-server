@@ -132,6 +132,24 @@ class TtsSetPunctuationsCommand : public Command {
   bool Run(const StatementInfo& cmd, const CommandContext& ctx) override;
 };
 
+class TtsSplitCapsCommand : public Command {
+ public:
+  TtsSplitCapsCommand() = default;
+  bool Run(const StatementInfo& cmd, const CommandContext& ctx) override;
+};
+
+class TtsCapitalizeCommand : public Command {
+ public:
+  TtsCapitalizeCommand() = default;
+  bool Run(const StatementInfo& cmd, const CommandContext& ctx) override;
+};
+
+class TtsAllcapsBeepCommand : public Command {
+ public:
+  TtsAllcapsBeepCommand() = default;
+  bool Run(const StatementInfo& cmd, const CommandContext& ctx) override;
+};
+
 class TtsSyncStateCommand : public Command {
  public:
   TtsSyncStateCommand() = default;
