@@ -115,8 +115,8 @@ bool TTS::Resume() {
 
 bool TTS::Stop() {
   eci_->Stop();
+  audio_->Clear();
   audio_->player()->Interrupt();
-  usleep(10);
   return true;
 }
 
