@@ -102,19 +102,16 @@ bool TTS::GenerateSilence(const int duration) {
 }
 
 bool TTS::Pause() {
-  eci_->Pause(true);
   audio_->player()->Pause();
   return true;
 }
 
 bool TTS::Resume() {
-  eci_->Pause(false);
   audio_->player()->Resume();
   return true;
 }
 
 bool TTS::Stop() {
-  eci_->Stop();
   audio_->Clear();
   audio_->player()->Interrupt();
   return true;

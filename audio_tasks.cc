@@ -64,6 +64,10 @@ AudioTask::TaskResult SpeechTask::Run(AlsaPlayer* player) {
   }
 }
 
+void SpeechTask::EndTask(AlsaPlayer* player, bool finished) {
+  eci_->Stop();
+}
+
 // ToneTask
 
 ToneTask::ToneTask(float frequency, float amplitude, int duration_ms)

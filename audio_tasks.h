@@ -88,6 +88,7 @@ class SpeechTask : public AudioTask {
 
   // Base class overrides.
   void StartTask(AlsaPlayer* player) override;
+  void EndTask(AlsaPlayer* player, bool finished) override;
   TaskResult Run(AlsaPlayer* player) override;
 
  private:
