@@ -119,12 +119,12 @@ class ToneTask : public AudioTask {
   unsigned int t_ = 0;
 };
 
-// Sound task.
+// Play audio task.
 //
 // This class plays via an external process the given file.
-class SoundTask : public AudioTask {
+class PlayTask : public AudioTask {
  public:
-  explicit SoundTask(const std::string& file_path);
+  explicit PlayTask(const std::string& file_path);
 
   // Starts the external process to play the file.
   void StartTask(AlsaPlayer* player) override;

@@ -88,7 +88,7 @@ bool ACommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
   if (cmd.arguments.size() != 1) {
     return false;
   }
-  std::unique_ptr<SoundTask> task(new SoundTask(cmd.arguments[0]));
+  std::unique_ptr<PlayTask> task(new PlayTask(cmd.arguments[0]));
   ctx.server_state->queue().push(std::move(task));
   return true;
 }
@@ -97,7 +97,7 @@ bool PCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
   if (cmd.arguments.size() != 1) {
     return false;
   }
-  std::unique_ptr<SoundTask> task(new SoundTask(cmd.arguments[0]));
+  std::unique_ptr<PlayTask> task(new PlayTask(cmd.arguments[0]));
   ctx.server_state->audio()->Push(std::move(task));
   return true;
 }

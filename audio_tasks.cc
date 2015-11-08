@@ -94,16 +94,16 @@ AudioTask::TaskResult ToneTask::Run(AlsaPlayer* player) {
   return t_ < duration_samples_ ? CONTINUE : FINISHED;
 }
 
-// SoundTask
+// PlayTask
 
-SoundTask::SoundTask(const string& file_path) : file_path_(file_path) {}
+PlayTask::PlayTask(const string& file_path) : file_path_(file_path) {}
 
-void SoundTask::StartTask(AlsaPlayer* player) {
+void PlayTask::StartTask(AlsaPlayer* player) {
   std::ostringstream command;
   command << kDefaultPlayProgram << " " << file_path_ << " &";
   std::system(command.str().c_str());
 }
 
-AudioTask::TaskResult SoundTask::Run(AlsaPlayer* player) {
+AudioTask::TaskResult PlayTask::Run(AlsaPlayer* player) {
   return FINISHED;
 }
