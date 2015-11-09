@@ -24,14 +24,15 @@ using std::unique_ptr;
 
 bool VersionCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
   const string msg = "ViaVoice " + ctx.tts->TTSVersion();
-  return ctx.tts->Say(msg) && ctx.tts->SubmitTask();
+  return ctx.tts->Say(msg, TTS::DEFAULT_VOICE) && ctx.tts->SubmitTask();
 }
 
 bool TtsSayCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
   if (cmd.arguments.size() != 1) {
     return false;
   }
-  return ctx.tts->Say(cmd.arguments[0]) && ctx.tts->SubmitTask();
+  return ctx.tts->Say(cmd.arguments[0], TTS::DEFAULT_VOICE) &&
+         ctx.tts->SubmitTask();
 }
 
 bool LCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
@@ -40,7 +41,7 @@ bool LCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
   }
   const string msg =
       ctx.server_state->text_formatter()->FormatSingleChar(cmd.arguments[0][0]);
-  return ctx.tts->Say(msg) && ctx.tts->SubmitTask();
+  return ctx.tts->Say(msg, TTS::DEFAULT_VOICE) && ctx.tts->SubmitTask();
 }
 
 bool TtsPauseCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
@@ -103,6 +104,10 @@ bool PCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
 }
 
 bool DCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
+  // Annotates all the messages to be dispatched to speak with the default
+  // voice.
+  ctx.server_state->audio()->Push(
+      ctx.tts->UseSelectedVoice(TTS::DEFAULT_VOICE));
   while (!ctx.server_state->queue().empty()) {
     auto& task = ctx.server_state->queue().front();
     ctx.server_state->audio()->Push(std::move(task));

@@ -44,6 +44,12 @@ class TTS {
     R_22050 = 2,
   };
 
+  enum ECIVoiceAnnotation {
+    DEFAULT_VOICE,  // Adult male.
+    NO_ANNOTATION,
+    // TODO: add more.
+  };
+
   // Options to configure the behavior of this class.
   struct Options {
     Options() noexcept {}
@@ -87,10 +93,11 @@ class TTS {
   bool Output(const std::string& msg);
 
   // Helper method to generate the internal PCM representation of the speech,
-  // prefixing the text with a string to control the speech engine. It will use
-  // the default voice plus the current speech speed. This would be the same as
+  // prefixing the text with a string to control the speed of the speech engine.
+  // This would be the same as
   // AddText(GetPrefixString() + text), Synthesize().
-  bool Say(const std::string& msg);
+  bool Say(const std::string& msg,
+           const ECIVoiceAnnotation voice = NO_ANNOTATION);
 
   bool GenerateSilence(const int duration);
 
@@ -108,6 +115,11 @@ class TTS {
 
   const std::string GetPrefixString() const;
 
+  // Helper method to output a task containing only the voice annotation, e.g, a
+  // string annotation making the speech engine use the default parameters for
+  // the selected voice.
+  std::unique_ptr<SpeechTask> UseSelectedVoice(const ECIVoiceAnnotation voice);
+
  private:
   std::unique_ptr<LangSwitcher> lang_switcher_;
   std::unique_ptr<ECI> eci_;
@@ -116,7 +128,6 @@ class TTS {
   std::unique_ptr<SpeechTask> pending_task_;
 
   int speech_rate_ = 50;
-
 };
 
 class TTSError : public std::runtime_error {

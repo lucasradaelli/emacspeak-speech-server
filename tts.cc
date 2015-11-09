@@ -26,8 +26,7 @@ using std::vector;
 
 constexpr char TTS::kEciLibraryName[];
 
-TTS::TTS(AudioManager* audio, const Options &options)
-    : audio_(audio) {
+TTS::TTS(AudioManager *audio, const Options &options) : audio_(audio) {
   lang_switcher_.reset(new LangSwitcher(ECI::GetAvailableLanguages()));
 
   ECILanguageDialect a_default_language = lang_switcher_->InitLanguage();
@@ -47,7 +46,7 @@ TTS::TTS(AudioManager* audio, const Options &options)
     return eciDataProcessed;
   });
   eci_->SetOutputBuffer(audio_->player()->period_size(),
-                        reinterpret_cast<short*>(audio_->player()->buffer()));
+                        reinterpret_cast<short *>(audio_->player()->buffer()));
 }
 
 TTS::~TTS() {}
@@ -81,16 +80,32 @@ bool TTS::Synthesize() {
 
 const string TTS::GetPrefixString() const {
   std::ostringstream prefix_string;
-  prefix_string << "`v1 `vs" << GetSpeechRate() << " ";
+  prefix_string << "`vs" << GetSpeechRate() << " ";
   return prefix_string.str();
 }
 
-bool TTS::Output(const string &msg) {
-  return AddText(msg) && Synthesize();
+bool TTS::Output(const string &msg) { return AddText(msg) && Synthesize(); }
+
+bool TTS::Say(const string &msg, const ECIVoiceAnnotation voice) {
+  if (voice == NO_ANNOTATION) {
+    return Output(GetPrefixString() + msg);
+  }
+  string voice_prefix;
+  switch (voice) {
+    case DEFAULT_VOICE:
+      voice_prefix = "`v1 ";
+      break;
+    default:
+      break;
+  }
+
+  return Output(voice_prefix + GetPrefixString() + msg);
 }
 
-bool TTS::Say(const string &msg) {
-  return Output(GetPrefixString() + msg);
+std::unique_ptr<SpeechTask> TTS::UseSelectedVoice(
+    const ECIVoiceAnnotation voice) {
+  Say("", voice);
+  return ReleaseTask();
 }
 
 bool TTS::GenerateSilence(const int duration) {
@@ -117,9 +132,7 @@ bool TTS::Stop() {
   return true;
 }
 
-string TTS::TTSVersion() {
-  return eci_->Version();
-}
+string TTS::TTSVersion() { return eci_->Version(); }
 
 string LangSwitcher::GetDefaultLanguageCode() {
   const char *a_default_lang = getenv("LANGUAGE");
@@ -137,7 +150,7 @@ string LangSwitcher::GetDefaultLanguageCode() {
 }
 
 bool LangSwitcher::GetValidLanguages(vector<int> *available_languages_index) {
-  for (const auto& lang : languages_) {
+  for (const auto &lang : languages_) {
     for (int j = 0; j < static_cast<int>(the_languages_.size()); j++) {
       if (lang == the_languages_[j].lang) {
         available_languages_index->push_back(j);
