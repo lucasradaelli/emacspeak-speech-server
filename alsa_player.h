@@ -74,7 +74,8 @@ class AlsaPlayer {
   void Interrupt();
 
  private:
-  void SetupPCM();
+  void SetupHwParams();
+  void SetupSwParams();
   void RecoverFromUnderrun();
   void RecoverFromSuspend();
 

@@ -28,7 +28,12 @@ AlsaPlayer::AlsaPlayer(const Options& options) : options_(options) {
     throw AlsaError("Failed to open ALSA sound device", error);
   }
 
-  SetupPCM();
+  SetupHwParams();
+  SetupSwParams();
+
+  if (options_.verbose) {
+    std::cerr << GetAlsaPcmDump() << std::flush;
+  }
 
   // Allocate the PCM buffer.
   const std::size_t sample_size =
@@ -42,11 +47,10 @@ AlsaPlayer::~AlsaPlayer() {
   snd_pcm_close(pcm_);
 }
 
-void AlsaPlayer::SetupPCM() {
+void AlsaPlayer::SetupHwParams() {
   auto check = [](int error) {
     if (error < 0) {
-      throw AlsaError("Requested PCM configuration was rejected by ALSA",
-                      error);
+      throw AlsaError("Hardware configuration was rejected by ALSA", error);
     }
   };
 
@@ -67,10 +71,28 @@ void AlsaPlayer::SetupPCM() {
   // Retrieve period and buffer sizes from ALSA.
   check(snd_pcm_hw_params_get_period_size(params, &period_size_, 0));
   check(snd_pcm_hw_params_get_buffer_size(params, &buffer_size_));
+}
 
-  if (options_.verbose) {
-    std::cerr << GetAlsaPcmDump() << std::flush;
-  }
+void AlsaPlayer::SetupSwParams() {
+  auto check = [](int error) {
+    if (error < 0) {
+      throw AlsaError("Software configuration was rejected by ALSA", error);
+    }
+  };
+
+  snd_pcm_sw_params_t* params = nullptr;
+  snd_pcm_sw_params_alloca(&params);
+
+  // Set ALSA software params for the requested PCM stream.
+  check(snd_pcm_sw_params_current(pcm_, params));
+
+  // Start playing audio only after one full period is available, otherwise,
+  // a short write (< 1 period) will cause the driver to leave the PREPARED
+  // state and immediately go into underrun.
+  check(snd_pcm_sw_params_set_start_threshold(pcm_, params, period_size_));
+
+  // Write ALSA software params to the device.
+  check(snd_pcm_sw_params(pcm_, params));
 }
 
 std::vector<struct pollfd> AlsaPlayer::GetPollDescriptors() const {
@@ -145,6 +167,14 @@ void AlsaPlayer::Resume() {
 }
 
 void AlsaPlayer::Idle() {
+  // This method is called after an AudioTask has finished running (sending
+  // its data to the player) and there is no other task in the queue. This
+  // may happen before a full period is written, and thus the buffer has not
+  // yet reached the start threshold set in SetupSwParams() and is still in
+  // the prepared state. In this case, force the PCM to start.
+  if (snd_pcm_state(pcm_) == SND_PCM_STATE_PREPARED) {
+    snd_pcm_start(pcm_);
+  }
   idle_ = true;
 }
 
