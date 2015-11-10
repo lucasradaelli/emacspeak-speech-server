@@ -132,7 +132,7 @@ void InputParser::Command() {
 // ArgumentList ::= Argument Spaces ArgumentList
 //                | BracedString Spaces ArgumentList
 void InputParser::ArgumentList() {
-  if (std::isalnum(*pos_) || *pos_ == '/') {
+  if (IsWordChar(*pos_)) {
     statement_->arguments.emplace_back();
     Push(&InputParser::Argument);
   } else if (*pos_ == '{') {
