@@ -31,7 +31,9 @@ bool TtsSayCommand::Run(const StatementInfo& cmd, const CommandContext& ctx) {
   if (cmd.arguments.size() != 1) {
     return false;
   }
-  return ctx.tts->Say(cmd.arguments[0], TTS::DEFAULT_VOICE) &&
+  const string processed_msg =
+      ctx.server_state->text_formatter()->FormatPause(cmd.arguments[0]);
+  return ctx.tts->Say(processed_msg, TTS::DEFAULT_VOICE) &&
          ctx.tts->SubmitTask();
 }
 

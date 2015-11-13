@@ -34,6 +34,10 @@ const regex TextFormatter::none_punctuation_removal_list_(
 const regex TextFormatter::capitalize_regex_("([[:upper:]])",
                                              boost::regex::extended);
 
+// Received as a pause symbol in IBM VIAVOICE TTS speech servers .
+const regex ECITextFormatter::pause_symbol_("\\[\\*\\]",
+                                            boost::regex::extended);
+
 ECITextFormatter::ECITextFormatter() {
   all_punctuation_.push_back({&star_regex_, " `00 star "});
   all_punctuation_.push_back({&dash_regex_, " `00 dash "});
@@ -100,4 +104,9 @@ string ECITextFormatter::FormatSingleChar(const char chr) {
   }
   const string msg = letter_pitch + "`ts2 " + chr + " `ts0";
   return msg;
+}
+
+string ECITextFormatter::FormatPause(const string& text) {
+  string output = regex_replace(text, pause_symbol_, " `p1 ");
+  return output;
 }
