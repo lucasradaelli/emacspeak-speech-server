@@ -65,7 +65,9 @@ AudioTask::TaskResult SpeechTask::Run(AlsaPlayer* player) {
 }
 
 void SpeechTask::EndTask(AlsaPlayer* player, bool finished) {
+  if (!finished) {
   eci_->Stop();
+  }
 }
 
 // ToneTask
