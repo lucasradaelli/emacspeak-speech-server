@@ -24,7 +24,6 @@
 
 #include "audio_manager.h"
 
-using std::cin;
 using std::cout;
 using std::string;
 
@@ -116,13 +115,13 @@ void SpeechServer::ProcessCommands() {
         bool result = command->Run(*statement, context);
 
         if (verbose()) {
-          std::cout << *statement << " :: Result: " << result << std::endl;
+          cout << *statement << " :: Result: " << result << std::endl;
         }
       } else if (verbose()) {
-        std::cout << *statement << " :: No such command." << std::endl;
+        cout << *statement << " :: No such command." << std::endl;
       }
     } catch (InputParsingError& error) {
-      std::cout << error.what() << std::endl;
+      cout << error.what() << std::endl;
     }
   }
 }
