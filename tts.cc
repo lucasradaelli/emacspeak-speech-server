@@ -18,6 +18,7 @@
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
+#include <map>
 #include <string>
 #include <sstream>
 
@@ -133,6 +134,16 @@ bool TTS::Stop() {
 }
 
 string TTS::TTSVersion() { return eci_->Version(); }
+
+TTS::SampleRate TTS::GetSampleRateConfig(int sample_rate) {
+  static const std::map<int, TTS::SampleRate> kSupportedSampleRates = {
+      {8000, R_8000}, {11025, R_11025}, {22050, R_22050}};
+  auto it = kSupportedSampleRates.find(sample_rate);
+  if (it == kSupportedSampleRates.end()) {
+    throw TTSError("Sample rate is not supported.");
+  }
+  return it->second;
+}
 
 string LangSwitcher::GetDefaultLanguageCode() {
   const char *a_default_lang = getenv("LANGUAGE");

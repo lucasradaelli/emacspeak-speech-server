@@ -120,6 +120,10 @@ class TTS {
   // the selected voice.
   std::unique_ptr<SpeechTask> UseSelectedVoice(const ECIVoiceAnnotation voice);
 
+  // Returns the sample rate configuration for the TTS/ECI classes equivalent
+  // to the given sample rate in Hz.
+  static SampleRate GetSampleRateConfig(int sample_rate);
+
  private:
   std::unique_ptr<LangSwitcher> lang_switcher_;
   std::unique_ptr<ECI> eci_;

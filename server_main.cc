@@ -87,14 +87,27 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  // Initialize the ALSA player.
+  // Options.
   AlsaPlayer::Options alsa_options;
+  TTS::Options tts_options;
+
+  // Initialize the ALSA player.
   alsa_options.verbose = verbose;
   if (args.count("devive")) {
     alsa_options.device = args["device"].as<std::string>();
   }
   if (args.count("rate")) {
     alsa_options.sample_rate = args["rate"].as<unsigned int>();
+
+    try {
+      tts_options.sample_rate =
+          TTS::GetSampleRateConfig(alsa_options.sample_rate);
+    } catch (TTSError& e) {
+      std::cerr << "Error: The selected sample rate "
+                << "(" << alsa_options.sample_rate << "Hz) "
+                << "is not supported by ECI. Expect distorted sound."
+                << std::endl;
+    }
   }
 
   if (args.count("realtime")) {
@@ -110,7 +123,7 @@ int main(int argc, char** argv) {
 
   // Initialize the audio manager and the TTS manager.
   AudioManager audio(std::move(alsa_player));
-  TTS tts(&audio);
+  TTS tts(&audio, tts_options);
 
   // Run the speech server.
   try {
