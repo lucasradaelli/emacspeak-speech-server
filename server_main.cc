@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 
@@ -31,15 +32,20 @@ po::options_description GetOptionsDescription() {
   options.add_options()
       ("help,h", "Display this help message.")
       ("verbose", "Be verbose about what is happening.")
-      ("eci-library", po::value<std::string>(),
+      ("eci-library", po::value<std::string>()->value_name("path"),
        "Path to libibmeci.so library file to load.");
 
   po::options_description audio_options("Audio options");
   audio_options.add_options()
-      ("device,D", po::value<std::string>(),
+      ("device,D", po::value<std::string>()->value_name("name"),
        "ALSA device to play audio output.")
-      ("rate,r", po::value<unsigned int>(),
-       "Audio sample rate.");
+      ("rate,r", po::value<unsigned int>()->value_name("hz"),
+       "Audio sample rate.")
+      ("realtime",
+       "Force a small buffer size, equivalent to --buffer-time=0.025.")
+      ("buffer-time", po::value<double>()->value_name("seconds"),
+       "Set the desired audio buffer time in seconds, which also affects the "
+       "maximum audio latency.");
   options.add(audio_options);
 
   /* clang-format on */
@@ -90,6 +96,16 @@ int main(int argc, char** argv) {
   if (args.count("rate")) {
     alsa_options.sample_rate = args["rate"].as<unsigned int>();
   }
+
+  if (args.count("realtime")) {
+    alsa_options.buffer_time = std::chrono::milliseconds(25);
+  } else if (args.count("buffer-time")) {
+    std::chrono::duration<double, std::chrono::seconds::period> duration(
+        args["buffer-time"].as<double>());
+    alsa_options.buffer_time =
+        std::chrono::duration_cast<std::chrono::microseconds>(duration);
+  }
+
   std::unique_ptr<AlsaPlayer> alsa_player(new AlsaPlayer(alsa_options));
 
   // Initialize the audio manager and the TTS manager.

@@ -15,6 +15,7 @@
 #ifndef ALSA_PLAYER_H_
 #define ALSA_PLAYER_H_
 
+#include <chrono>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -46,6 +47,9 @@ class AlsaPlayer {
 
     // Number of channels.
     unsigned int channels = 1;
+
+    // Desired buffer size.
+    std::chrono::microseconds buffer_time = std::chrono::seconds(15);
   };
 
   AlsaPlayer(const Options& options = Options());
