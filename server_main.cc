@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
 
   // Initialize the ALSA player.
   alsa_options.verbose = verbose;
-  if (args.count("devive")) {
+  if (args.count("device")) {
     alsa_options.device = args["device"].as<std::string>();
   }
   if (args.count("rate")) {

@@ -67,9 +67,11 @@ void AlsaPlayer::SetupHwParams() {
 
   // Set the audio buffer size.  A lower value means that audio reproduction
   // time is closer to the time it was processed in the application.
-  unsigned int buffer_time_us = options_.buffer_time.count();
-  check(snd_pcm_hw_params_set_buffer_time_near(pcm_, params, &buffer_time_us,
-                                               nullptr));
+  if (options_.buffer_time > std::chrono::microseconds(0)) {
+    unsigned int buffer_time_us = options_.buffer_time.count();
+    check(snd_pcm_hw_params_set_buffer_time_near(pcm_, params, &buffer_time_us,
+                                                 nullptr));
+  }
 
   // Write ALSA hardware parameters to the device.
   check(snd_pcm_hw_params(pcm_, params));

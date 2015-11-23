@@ -49,7 +49,9 @@ class AlsaPlayer {
     unsigned int channels = 1;
 
     // Desired buffer size.
-    std::chrono::microseconds buffer_time = std::chrono::seconds(15);
+    // The default value zero means that the default buffer size will be
+    // used.
+    std::chrono::microseconds buffer_time = std::chrono::microseconds(0);
   };
 
   AlsaPlayer(const Options& options = Options());
