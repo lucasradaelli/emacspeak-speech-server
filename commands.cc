@@ -242,6 +242,9 @@ bool TtsSyncStateCommand::Run(const StatementInfo& cmd,
   }
 
   const string mode = cmd.arguments[0];
+  const string capitalized = cmd.arguments[1];
+  const string allcaps_bip = cmd.arguments[2];
+  const string split_caps = cmd.arguments[3];
   const int speech_rate = std::stoi(cmd.arguments[4]);
 
   TextFormatter::PunctuationMode punctuation_mode;
@@ -255,14 +258,20 @@ bool TtsSyncStateCommand::Run(const StatementInfo& cmd,
     return false;
   }
 
+  if ((capitalized != "1" && capitalized != "0") ||
+      (allcaps_bip != "1" && allcaps_bip != "0") ||
+      (split_caps != "1" && split_caps != "0")) {
+    return false;
+  }
+
   if (speech_rate <= 0) {
     return false;
   }
 
   ctx.server_state->set_punctuation_mode(punctuation_mode);
-  // TODO: set capitalize
-  // TODO: set allcaps-beep
-  // TODO: set split-caps
+  ctx.server_state->set_tts_capitalize(capitalized == "1" ? true : false);
+  ctx.server_state->set_tts_allcaps_beep(allcaps_bip == "1" ? true : false);
+  ctx.server_state->set_tts_split_caps(split_caps == "1" ? true : false);
   ctx.tts->SetSpeechRate(speech_rate);
 
   return true;
