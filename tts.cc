@@ -15,12 +15,13 @@
 #include "tts.h"
 #include "alsa_player.h"
 
-#include <iostream>
-#include <cstring>
+#include <algorithm>
 #include <cstdlib>
+#include <cstring>
+#include <iostream>
 #include <map>
-#include <string>
 #include <sstream>
+#include <string>
 
 using std::string;
 using std::vector;
@@ -28,14 +29,21 @@ using std::vector;
 constexpr char TTS::kEciLibraryName[];
 
 TTS::TTS(AudioManager *audio, const Options &options) : audio_(audio) {
-  lang_switcher_.reset(new LangSwitcher(ECI::GetAvailableLanguages()));
+  languages_ = ECI::GetAvailableLanguages();
 
-  ECILanguageDialect a_default_language = lang_switcher_->InitLanguage();
-  if (a_default_language == NODEFINEDCODESET) {
+  if (languages_.empty()) {
     throw TTSError("No languages found.");
   }
+  int i;
+  for (i = 0; i < languages_.size(); ++i) {
+    if (languages_[i] == options.default_language) break;
+  }
 
-  eci_.reset(new ECI(a_default_language));
+  current_language_index_ =
+      i != languages_.size() ? i
+                             : 0 /*Fallback to the first available language.*/;
+
+  eci_.reset(new ECI(languages_[current_language_index_]));
 
   // Initialize TTS.
   eci_->SetParam(eciInputType, 1);
@@ -135,6 +143,24 @@ bool TTS::Stop() {
 
 string TTS::TTSVersion() { return eci_->Version(); }
 
+void TTS::NextLanguage() {
+  if (current_language_index_ == languages_.size() - 1) {
+    current_language_index_ = 0;
+  } else {
+    ++current_language_index_;
+  }
+  eci_->SetParam(eciLanguageDialect, languages_[current_language_index_]);
+}
+
+void TTS::PreviousLanguage() {
+  if (current_language_index_ == 0) {
+    current_language_index_ = languages_.size() - 1;
+  } else {
+    --current_language_index_;
+  }
+  eci_->SetParam(eciLanguageDialect, languages_[current_language_index_]);
+}
+
 TTS::SampleRate TTS::GetSampleRateConfig(int sample_rate) {
   static const std::map<int, TTS::SampleRate> kSupportedSampleRates = {
       {8000, R_8000}, {11025, R_11025}, {22050, R_22050}};
@@ -143,62 +169,4 @@ TTS::SampleRate TTS::GetSampleRateConfig(int sample_rate) {
     throw TTSError("Sample rate is not supported.");
   }
   return it->second;
-}
-
-string LangSwitcher::GetDefaultLanguageCode() {
-  const char *a_default_lang = getenv("LANGUAGE");
-  if (a_default_lang == nullptr) {
-    a_default_lang = getenv("LANG");
-    if (a_default_lang == nullptr) {
-      a_default_lang = "en";
-    }
-  }
-  if (strlen(a_default_lang) < 2) {
-    a_default_lang = "en";
-  }
-  // TODO: Test if the language is available on the list of supported languages.
-  return a_default_lang;
-}
-
-bool LangSwitcher::GetValidLanguages(vector<int> *available_languages_index) {
-  for (const auto &lang : languages_) {
-    for (int j = 0; j < static_cast<int>(the_languages_.size()); j++) {
-      if (lang == the_languages_[j].lang) {
-        available_languages_index->push_back(j);
-      }
-    }
-  }
-  return !available_languages_index->empty();
-}
-
-ECILanguageDialect LangSwitcher::InitLanguage() {
-  vector<int> available_languages_index;
-  if (!GetValidLanguages(&available_languages_index)) {
-    return NODEFINEDCODESET;
-  }
-
-  const string a_default_lang_code = GetDefaultLanguageCode();
-  ECILanguageDialect a_current_language, a_english_language, a_first_language;
-  a_current_language = a_english_language = a_first_language = NODEFINEDCODESET;
-  for (const int index : available_languages_index) {
-    if (a_current_language == NODEFINEDCODESET) {
-      if (strncmp(a_default_lang_code.c_str(), the_languages_[index].code, 2) ==
-          0) {
-        a_current_language = the_languages_[index].lang;
-      } else if (strncmp("en", the_languages_[index].code, 2) == 0) {
-        a_english_language = the_languages_[index].lang;
-      }
-    }
-  }
-
-  a_first_language = the_languages_[available_languages_index[0]].lang;
-  if (a_current_language == NODEFINEDCODESET) {
-    if (a_english_language != NODEFINEDCODESET) {
-      a_current_language = a_english_language;
-    } else if (a_first_language != NODEFINEDCODESET) {
-      a_current_language = a_first_language;
-    }
-  }
-
-  return a_current_language;
 }
