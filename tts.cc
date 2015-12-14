@@ -170,3 +170,18 @@ TTS::SampleRate TTS::GetSampleRateConfig(int sample_rate) {
   }
   return it->second;
 }
+
+ECILanguageDialect TTS::GetLanguageConfig(const string &language) {
+  static const std::map<string, ECILanguageDialect> kSupportedLanguages = {
+      {"en_US", eciGeneralAmericanEnglish}, {"en_GB", eciBritishEnglish},
+      {"es_ES", eciCastilianSpanish},       {"es_MX", eciMexicanSpanish},
+      {"fr_FR", eciStandardFrench},         {"fr_CA", eciCanadianFrench},
+      {"de_DE", eciStandardGerman},         {"it_IT", eciStandardItalian},
+      {"pt_BR", eciBrazilianPortuguese},    {"fi_FI", eciStandardFinnish}};
+  auto it = kSupportedLanguages.find(language);
+  if (it == kSupportedLanguages.end()) {
+    throw TTSError("Unknown language.");
+  }
+
+  return it->second;
+}

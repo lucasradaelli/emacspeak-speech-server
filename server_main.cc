@@ -21,10 +21,13 @@
 #include "alsa_player.h"
 #include "audio_manager.h"
 #include "eci-c++.h"
-#include "tts.h"
 #include "speech_server.h"
+#include "tts.h"
 
 namespace po = boost::program_options;
+
+using std::string;
+using std::cerr;
 
 po::options_description GetOptionsDescription() {
   /* clang-format off */
@@ -32,12 +35,14 @@ po::options_description GetOptionsDescription() {
   options.add_options()
       ("help,h", "Display this help message.")
       ("verbose", "Be verbose about what is happening.")
-      ("eci-library", po::value<std::string>()->value_name("path"),
-       "Path to libibmeci.so library file to load.");
+      ("eci-library", po::value<string>()->value_name("path"),
+       "Path to libibmeci.so library file to load.")
+      ("default_language,L", po::value<string>()->value_name("language"),
+       "Default language to load the speech server. Choose between [en_US|en_GB|es_ES|es_MX|fr_FR|fr_CA|de_DE|it_IT|pt_BR|fi_FI].");
 
   po::options_description audio_options("Audio options");
   audio_options.add_options()
-      ("device,D", po::value<std::string>()->value_name("name"),
+      ("device,D", po::value<string>()->value_name("name"),
        "ALSA device to play audio output.")
       ("rate,r", po::value<unsigned int>()->value_name("hz"),
        "Audio sample rate.")
@@ -61,29 +66,28 @@ int main(int argc, char** argv) {
     po::store(po::parse_command_line(argc, argv, options), args);
     po::notify(args);
   } catch (po::error& e) {
-    std::cerr << "Error parsing command line options:\n"
-              << e.what() << "\n";
+    cerr << "Error parsing command line options:\n" << e.what() << "\n";
     return EXIT_FAILURE;
   }
 
   if (args.count("help")) {
     std::cout << "speech_server [ OPTIONS ]\n"
               << "An IBM ViaVoice TTS speech server for Emacspeak.\n\n";
-    std::cerr << options << "\n";
+    cerr << options << "\n";
     return EXIT_SUCCESS;
   }
 
   const bool verbose = args.count("verbose");
 
   // Initialize the ECI library.
-  const std::string eci_library_path =
-      args.count("eci-library") > 0 ? args["eci-library"].as<std::string>()
-                                    : TTS::kEciLibraryName;
+  const string eci_library_path = args.count("eci-library") > 0
+                                      ? args["eci-library"].as<string>()
+                                      : TTS::kEciLibraryName;
   try {
     ECI::Init(eci_library_path.c_str());
   } catch (std::exception& e) {
-    std::cerr << "Failed to load the IBM ViaVoice TTS ECI library:\n"
-              << e.what() << "\n\n";
+    cerr << "Failed to load the IBM ViaVoice TTS ECI library:\n" << e.what()
+         << "\n\n";
     return EXIT_FAILURE;
   }
 
@@ -91,10 +95,22 @@ int main(int argc, char** argv) {
   AlsaPlayer::Options alsa_options;
   TTS::Options tts_options;
 
+  if (args.count("default_language")) {
+    string default_language = args["default_language"].as<string>();
+
+    try {
+      tts_options.default_language = TTS::GetLanguageConfig(default_language);
+    } catch (TTSError& e) {
+      cerr << "The selected language " << default_language << " is not valid"
+           << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
+
   // Initialize the ALSA player.
   alsa_options.verbose = verbose;
   if (args.count("device")) {
-    alsa_options.device = args["device"].as<std::string>();
+    alsa_options.device = args["device"].as<string>();
   }
   if (args.count("rate")) {
     alsa_options.sample_rate = args["rate"].as<unsigned int>();
@@ -103,10 +119,9 @@ int main(int argc, char** argv) {
       tts_options.sample_rate =
           TTS::GetSampleRateConfig(alsa_options.sample_rate);
     } catch (TTSError& e) {
-      std::cerr << "Error: The selected sample rate "
-                << "(" << alsa_options.sample_rate << "Hz) "
-                << "is not supported by ECI. Expect distorted sound."
-                << std::endl;
+      cerr << "Error: The selected sample rate "
+           << "(" << alsa_options.sample_rate << "Hz) "
+           << "is not supported by ECI. Expect distorted sound." << std::endl;
     }
   }
 
@@ -132,8 +147,8 @@ int main(int argc, char** argv) {
 
     speech_server.MainLoop();
   } catch (std::exception& e) {
-    std::cerr << "Fatal error while running the speech server:\n"
-              << e.what() << "\n\n";
+    cerr << "Fatal error while running the speech server:\n" << e.what()
+         << "\n\n";
     return EXIT_FAILURE;
   }
 

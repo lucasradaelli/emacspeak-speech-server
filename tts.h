@@ -133,6 +133,9 @@ class TTS {
   // to the given sample rate in Hz.
   static SampleRate GetSampleRateConfig(int sample_rate);
 
+  // Returns the language configuration for the TTS/ECI classes.
+  static ECILanguageDialect GetLanguageConfig(const std::string& language);
+
  private:
   std::vector<ECILanguageDialect> languages_;
   int current_language_index_;
