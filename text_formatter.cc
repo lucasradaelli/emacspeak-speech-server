@@ -31,6 +31,9 @@ const regex TextFormatter::some_punctuation_pause_list_(
 const regex TextFormatter::none_punctuation_removal_list_(
     "([[:punct:]])", boost::regex::extended);
 
+const regex TextFormatter::capitalize_word_("([[:upper:]]{4,})",
+                                            boost::regex::extended);
+
 const regex TextFormatter::capitalize_regex_("([[:upper:]])",
                                              boost::regex::extended);
 
@@ -89,7 +92,13 @@ string ECITextFormatter::Format(const string& text,
   if (split_caps) {
     if (!capitalized) {
       // If capitalized is set to true, pauses have been already added.
-      output = regex_replace(output, capitalize_regex_, " `p1 \\1");
+      // First, we substitute every word that is capitalized by a pause followed
+      // by the word. This is necessary to make the speech engine pronounce the
+      // word as a single unit.
+      output = regex_replace(output, capitalize_word_, " `p1 \\L$1\\E");
+      // Now, there are only capitalized letters that are alone or part of an
+      // abreviation, E.G, words with less or equal to three letters.
+      output = regex_replace(output, capitalize_regex_, " `p1 \\L$1\\E");
     }
     // Todo: add possibly missing other variatons.
   }

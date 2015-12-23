@@ -2,8 +2,8 @@
 #define TEXT_FORMATTER_H_
 
 #include <boost/regex.hpp>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 // Base class that formats a message to be synthesized. As different speech
 // engines pronounce punctuations and some other symbols differently, this class
@@ -78,6 +78,7 @@ class TextFormatter {
 
   static const regex none_punctuation_removal_list_;
 
+  static const regex capitalize_word_;
   static const regex capitalize_regex_;
 };
 

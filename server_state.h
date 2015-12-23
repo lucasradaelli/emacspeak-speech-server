@@ -75,7 +75,7 @@ class ServerState {
 
   // Set state of split caps processing. Set this to true to
   // speak mixed-case (AKA Camel Case) identifiers.
-  bool tts_split_caps_ = false;
+  bool tts_split_caps_ = true;
 
   // Set this to true to indicate capitalization via a voice  pitch.
   bool tts_capitalize_ = false;
